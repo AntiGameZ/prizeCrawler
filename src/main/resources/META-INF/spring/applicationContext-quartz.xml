@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation=" http://www.springframework.org/schema/beans   
+            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd  
+            http://www.springframework.org/schema/context  
+            http://www.springframework.org/schema/context/spring-context-2.5.xsd  
+            http://www.springframework.org/schema/aop  
+            http://www.springframework.org/schema/aop/spring-aop-2.5.xsd  
+            http://www.springframework.org/schema/tx  
+            http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+   
+   <!--高频抓取任务-->
+   <bean id="fastOpenCrawlJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="crawlTimer"></property>
+   		<property name="targetMethod" value="crawlFashOpen"></property>
+   </bean>
+   
+   <bean id="fastOpenCrawlTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="fastOpenCrawlJobDetail"></property>
+   		<property name="cronExpression" value="${quartz.fastOpenCrawl}"></property>
+   </bean>
+   
+   
+   <!--高频通知任务-->
+   <bean id="fastOpenNoticeJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="noticeTimer"></property>
+   		<property name="targetMethod" value="noticeFashOpen"></property>
+   </bean>
+   
+   <bean id="fastOpenNoticeTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="fastOpenNoticeJobDetail"></property>
+   		<property name="cronExpression" value="${quartz.fastOpenNotice}"></property>
+   </bean>
+   
+   
+   
+   <!--大盘抓取任务-->
+   <bean id="daPanCrawlJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="crawlTimer"></property>
+   		<property name="targetMethod" value="crawlDaPan"></property>
+   </bean>
+   
+   <bean id="daPanCrawlTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="daPanCrawlJobDetail"></property>
+   		<property name="cronExpression" value="${quartz.daPanCrawl}"></property>
+   </bean>
+   
+   
+   <!--大盘通知任务-->
+   <bean id="daPanNoticeJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="noticeTimer"></property>
+   		<property name="targetMethod" value="noticeDaPan"></property>
+   </bean>
+   
+   <bean id="daPanNoticeTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="daPanNoticeJobDetail"></property>
+   		<property name="cronExpression" value="${quartz.daPanNotice}"></property>
+   </bean>
+   
+   
+   
+   <!--竞彩冠亚军对阵-->
+   <bean id="guanyajunJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="guanYaJun01Service"></property>
+   		<property name="targetMethod" value="calGYJ01"></property>
+   </bean>
+   
+   <bean id="guanyajunTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="guanyajunJobDetail"></property>
+   		<property name="cronExpression" value="${quartz.guanyajunMatch}"></property>
+   </bean>
+   
+   <!--竞彩冠亚军对阵(奥运)-->
+   <bean id="guanYaJunOlympicDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="guanYaJunOlympicService"></property>
+   		<property name="targetMethod" value="olympicCal"></property>
+   </bean>
+   
+   <bean id="guanYaJunOlympicTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="guanYaJunOlympicDetail"></property>
+   		<property name="cronExpression" value="${quartz.guanyajunMatch}"></property>
+   </bean>
+   
+   
+   <!--竞彩赔率-->
+   <bean id="jingcaipeilvJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="jingcaiPeiluService"></property>
+   		<property name="targetMethod" value="getJingcaiPeilu"></property>
+   </bean>
+   
+   <bean id="jingcaipeilvTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="jingcaipeilvJobDetail"></property>
+   		<property name="cronExpression" value="${quartz.jingcaipeilv}"></property>
+   </bean>
+   
+   
+   <!--竞彩对阵-->
+   <bean id="jingcaiDuizhenJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="jingcaiDuizhenService"></property>
+   		<property name="targetMethod" value="init"></property>
+   </bean>
+   
+   <bean id="jingcaiDuizhenTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="jingcaiDuizhenJobDetail"></property>
+   		<property name="cronExpression" value="${quartz.jingcaiduizhen}"></property>
+   </bean>
+   
+   
+   <!--竞彩赛果-->
+   <bean id="jingcairesultJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="jingcaiResultService"></property>
+   		<property name="targetMethod" value="init"></property>
+   </bean>
+   
+   <bean id="jingcairesultTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="jingcairesultJobDetail"></property>
+   		<property name="cronExpression" value="${quartz.jingcairesult}"></property>
+   </bean>
+   
+   
+    <!--竞彩足球让分-->
+   <bean id="footballletpointJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="jingcaiLetPointService"></property>
+   		<property name="targetMethod" value="updateFootBallLetPointService"></property>
+   </bean>
+   
+   <bean id="footballletpointTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="footballletpointJobDetail"></property>
+   		<property name="cronExpression" value="${quartz.footballletpoint}"></property>
+   </bean>
+   
+   <!--竞彩篮球让分-->
+   <bean id="basketballletpointJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="jingcaiLetPointService"></property>
+   		<property name="targetMethod" value="updateBasketBallLetPointService"></property>
+   </bean>
+   
+   <bean id="basketballletpointTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="basketballletpointJobDetail"></property>
+   		<property name="cronExpression" value="${quartz.basketballletpoint}"></property>
+   </bean>
+   
+   
+   
+   
+   <!--北单对阵-->
+   <bean id="beidanDuizhenDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="beiDanDuizhenService"></property>
+   		<property name="targetMethod" value="duizhenTimer"></property>
+   </bean>
+   
+   <bean id="beidanDuizhenTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="beidanDuizhenDetail"></property>
+   		<property name="cronExpression" value="${quartz.beidanduizhen}"></property>
+   </bean>
+   
+   
+   <!--北单赔率-->
+   <bean id="beidanPeilvDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="beiDanPeiluService"></property>
+   		<property name="targetMethod" value="peilvTimer"></property>
+   </bean>
+   
+   <bean id="beidanPeilvTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="beidanPeilvDetail"></property>
+   		<property name="cronExpression" value="${quartz.beidanpeilv}"></property>
+   </bean>
+   
+   <!--北单赛果-->
+   <bean id="beidanResultDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="beiDanResultService"></property>
+   		<property name="targetMethod" value="resultTimer"></property>
+   </bean>
+   
+   <bean id="beidanResultTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="beidanResultDetail"></property>
+   		<property name="cronExpression" value="${quartz.beidanresult}"></property>
+   </bean>
+   
+   
+   
+   <bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+   		<property name="triggers">
+   			<list>
+<!--     			<ref bean="fastOpenCrawlTrigger"/> -->
+<!--     			<ref bean="fastOpenNoticeTrigger"/> -->
+<!--    				<ref bean="daPanCrawlTrigger"/> -->
+<!--    				<ref bean="daPanNoticeTrigger"/> -->
+<!--    				<ref bean="guanyajunTrigger"/> -->
+<!-- 				<ref bean="guanYaJunOlympicTrigger"/> -->
+<!--    				<ref bean="jingcaipeilvTrigger"/> -->
+<!-- 				<ref bean="jingcaiDuizhenTrigger"/> -->
+<!-- 				<ref bean="jingcairesultTrigger"/> -->
+<!-- 				<ref bean="footballletpointTrigger"/> -->
+<!-- 				<ref bean="basketballletpointTrigger"/> -->
+				
+				<ref bean="beidanDuizhenTrigger"/>
+				<ref bean="beidanPeilvTrigger"/>
+				<ref bean="beidanResultTrigger"/>
+   			</list>
+   		</property>
+   </bean>
+   
+   
+</beans>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>   
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">   
+        <Encoding>UTF-8</Encoding>   
+        <layout class="ch.qos.logback.classic.PatternLayout">   
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n   
+            </pattern>   
+        </layout>   
+    </appender>   
+       
+    <appender name="prizeCrawlerLog"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/prizeCrawler.log</File>
+		<encoder>
+			<pattern>%-20(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %-5level %logger{80}.%method - %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/prizeCrawler.log%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
+	
+	
+	<appender name="jingcaiduizhen"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/jingcaiduizhen.log</File>
+		<encoder>
+			<pattern>%-20(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %-5level %logger{80}.%method - %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/jingcaiduizhen%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
+	
+	
+	<appender name="jingcaipeilv"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/jingcaipeilv.log</File>
+		<encoder>
+			<pattern>%-20(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %-5level %logger{80}.%method - %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/jingcaipeilv%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
+	
+	
+	<appender name="jingcairesult"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/jingcairesult.log</File>
+		<encoder>
+			<pattern>%-20(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %-5level %logger{80}.%method - %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/jingcairesult%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
+	
+	<appender name="jingcailetpoint"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/jingcailetpoint.log</File>
+		<encoder>
+			<pattern>%-20(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %-5level %logger{80}.%method - %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/jingcailetpoint%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
+	
+	
+	<appender name="guanyajun"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/guanyajun.log</File>
+		<encoder>
+			<pattern>%-20(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %-5level %logger{80}.%method - %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/guanyajun%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
+	
+	<appender name="beidanduizhen"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/beidanduizhen.log</File>
+		<encoder>
+			<pattern>%-20(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %-5level %logger{80}.%method - %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/beidanduizhen%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
+	
+	
+	<appender name="beidanpeilv"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/beidanpeilv.log</File>
+		<encoder>
+			<pattern>%-20(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %-5level %logger{80}.%method - %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/beidanpeilv%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
+	
+	<appender name="beidanresult"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/beidanresult.log</File>
+		<encoder>
+			<pattern>%-20(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %-5level %logger{80}.%method - %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/beidanresult%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
+	
+	
+	<logger name="org.apache" level="ERROR" />
+	<logger name="org.hibernate.SQL" level="ERROR" />
+	<logger name="org.hibernate" level="ERROR" />
+	<logger name="org.springframework" level="ERROR" />
+	<logger name="net.sf" level="ERROR" />
+	
+	
+	<logger name="com.ruyicai.prizecrawler.jingcai.JingcaiDuizhenService" additivity="false"
+		level="info">
+		<appender-ref ref="jingcaiduizhen" />
+	</logger>
+	
+	<logger name="com.ruyicai.prizecrawler.jingcai.JingcaiPeiluService" additivity="false"
+		level="info">
+		<appender-ref ref="jingcaipeilv" />
+	</logger>
+	
+	<logger name="com.ruyicai.prizecrawler.jingcai.JingcaiResultService" additivity="false"
+		level="info">
+		<appender-ref ref="jingcairesult" />
+	</logger>
+	
+	<logger name="com.ruyicai.prizecrawler.jingcai.JingcaiLetPointService" additivity="false"
+		level="info">
+		<appender-ref ref="jingcailetpoint" />
+	</logger>
+	
+	<logger name="com.ruyicai.prizecrawler.jingcaiguanyajun.GuanYaJunOlympicService" additivity="false"
+		level="info">
+		<appender-ref ref="guanyajun" />
+	</logger>
+	
+	<logger name="com.ruyicai.prizecrawler.beidan.BeiDanDuizhenService" additivity="false"
+		level="info">
+		<appender-ref ref="beidanduizhen" />
+	</logger>
+	
+	<logger name="com.ruyicai.prizecrawler.beidan.BeiDanPeiluService" additivity="false"
+		level="info">
+		<appender-ref ref="beidanpeilv" />
+	</logger>
+	
+	<logger name="com.ruyicai.prizecrawler.beidan.BeiDanResultService" additivity="false"
+		level="info">
+		<appender-ref ref="beidanresult" />
+	</logger>
+
+
+    <root level="INFO">
+		<appender-ref ref="${logback.appender}" />
+	</root>
+</configuration>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:amq="http://activemq.apache.org/schema/core" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-2.5.xsd  
+		http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-2.5.xsd
+  		http://activemq.apache.org/schema/core 
+  		http://activemq.apache.org/schema/core/activemq-core-5.5.0.xsd">
+
+	<context:property-placeholder location="classpath:*.properties"/>
+	
+	<bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="${activemq.brokerURL}" />
+	</bean>
+	
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="receiveTimeout" value="60000" />
+		<property name="sessionTransacted" value="true"></property>
+	</bean>
+	
+	
+	
+
+	<!-- 期结束消息队列 -->
+	<bean id="prizecrawlerIssueEnd" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="VirtualTopicConsumers.prizecrawler.issue-end" />
+	</bean>
+	
+	<!-- 发送短信队列 -->
+	<bean id="errDrawSms" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="drawSms" />
+	</bean>
+	
+	<!-- 发送短信队列 -->
+	<bean id="errEmailQueue" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="errPrizeEmail" />
+	</bean>
+	
+	<!-- 开奖号码校验队列 -->
+	<bean id="checkCodeQueue" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="checkCode" />
+	</bean>
+	
+	<!-- 检查开奖信息校验队列 -->
+	<bean id="checkInfoQueue" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="checkInfo" />
+	</bean>
+	
+	<!-- lottery开奖信息队列 -->
+	<bean id="agencyDrawLottery" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="VirtualTopicConsumers.prizecrawler.agencyDrawLottery" />
+	</bean>
+	
+	<!-- 消息接收监听器用于异步接收消息(期截信息) -->
+	<bean class="org.springframework.jms.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="destination" ref="prizecrawlerIssueEnd" />
+		<property name="messageListener" ref="issueEndListener"/>
+	</bean>
+	
+	<!-- 消息接收监听器用于异步接收消息(开奖号码校验) -->
+	<bean class="org.springframework.jms.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="destination" ref="checkCodeQueue" />
+		<property name="messageListener" ref="checkCodeListener"/>
+	</bean>
+	
+	<!-- 消息接收监听器用于异步接收消息(开奖信息校验) -->
+	<bean class="org.springframework.jms.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="destination" ref="checkInfoQueue" />
+		<property name="messageListener" ref="checkInfoListener"/>
+	</bean>
+	
+	<!-- 消息接收监听器用于异步接收消息(lottery开奖信息队列 ) -->
+	<bean class="org.springframework.jms.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="destination" ref="agencyDrawLottery" />
+		<property name="messageListener" ref="agencyDrawLotteryListener"/>
+		<property name="concurrentConsumers" value="10"></property>
+	</bean>
+	
+	<!-- 消息接收监听器用于异步接收消息(抓奖延迟错误email发送队列 ) -->
+	<bean class="org.springframework.jms.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="destination" ref="errEmailQueue" />
+		<property name="messageListener" ref="sendEmailListener"/>
+	</bean>
+
+</beans>
