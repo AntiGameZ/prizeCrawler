@@ -1,6 +1,5 @@
 package com.ruyicai.prizecrawler.util;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import org.slf4j.Logger;
@@ -27,13 +26,17 @@ public class SendSMS {
 	
 	public String resultMsg = "有未审核赛果";
 	
+	public String beidanMatchMsg = "北京单场有未审核场次";
+	
+	public String beidanResultMsg = "北京单场有未审核赛果";
+	
 	public void sendSMS(String msg) {
 		logger.info("发送短信, mobiles:{},msg:{}", new String[] {mobiles, msg});
 		if(!StringUtil.isEmpty(mobiles)) {
 			try {
 				String result = httpUtil.getResponse(url, HttpUtil.POST, HttpUtil.UTF8, buildMobiles() + "text=" + URLEncoder.encode(msg, HttpUtil.UTF8));
 				logger.info("发送短信返回, result:{},mobiles:{},msg:{}", new String[] {result, mobiles, msg});
-			} catch (UnsupportedEncodingException e) {
+			} catch (Throwable e) {
 				logger.info("发送短信出错, mobiles:{},msg:{}", new String[] {mobiles, msg});
 			}
 		}

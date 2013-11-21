@@ -19,11 +19,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.ruyicai.prizecrawler.consts.JingcaiState;
-import com.ruyicai.prizecrawler.domain.Events;
 import com.ruyicai.prizecrawler.domain.TJingcaiParam;
 import com.ruyicai.prizecrawler.domain.Tjingcaimatches;
 import com.ruyicai.prizecrawler.jingcai.dao.TjingcaiDao;
-import com.ruyicai.prizecrawler.service.EventsService;
+import com.ruyicai.prizecrawler.shortname.ShortNames;
+import com.ruyicai.prizecrawler.shortname.dao.TShortNameDao;
+import com.ruyicai.prizecrawler.util.DateUtil;
 import com.ruyicai.prizecrawler.util.JsonUtil;
 import com.ruyicai.prizecrawler.util.SendSMS;
 import com.ruyicai.prizecrawler.util.StringUtil;
@@ -66,7 +67,7 @@ public class JingcaiDuizhenService {
 	private SendSMS sendSMS;
 	
 	@Autowired
-	private EventsService eventsService;
+	private TShortNameDao shortnamedao;
 	
 	private boolean issend = false;
 	
@@ -144,8 +145,9 @@ public class JingcaiDuizhenService {
 				String team = trim(tds.get(2).text()).replaceAll("\\s*VS\\s*", ":");
 				String[] teams = team.split("\\:");
 				team = teams[1] + ":" + teams[0];
-				if(null == tjingcaiDao.findTjingcaimatches(type, weekid, teamid, league, team, day)) {
-					Date datetime = getTime(time, 1);
+				Date datetime = getTime(time, 1);
+				Tjingcaimatches tjingcaimatches = tjingcaiDao.findTjingcaimatches(type, weekid, teamid, league, team, day);
+				if(null == tjingcaimatches) {
 					String unsupportStr = trim(tds.get(5).text());
 					String unsupport = "";
 					if(!StringUtil.isEmpty(unsupportStr)) {
@@ -159,6 +161,8 @@ public class JingcaiDuizhenService {
 					}
 					saveMatches(type, weekid, day, teamid, league, team,
 							datetime, unsupport);
+				}  else {
+					checkUpdateTime(tjingcaimatches, datetime);
 				}
 			}
 		} catch(Exception e) {
@@ -175,11 +179,14 @@ public class JingcaiDuizhenService {
 					String key = entry.getKey();
 					if(unsupport.contains(key)) {
 						String type = unsupport.substring(key.length());
-						builder.append(entry.getValue()).append("_");
-						if(type.contains("单场")) {
+						if(type.equals("单场")) {
+							builder.append(entry.getValue()).append("_");
 							builder.append("0");
-						} else {
+						} else if(type.equals("过关")){
+							builder.append(entry.getValue()).append("_");
 							builder.append("1");
+						} else {
+							continue;
 						}
 						builder.append(",");
 						break;
@@ -220,25 +227,53 @@ public class JingcaiDuizhenService {
 			String teamid = event.substring(2);
 			String league = trim(tds.get(1).text());
 			String team = trim(tds.get(2).text()).replaceAll("\\s*VS\\s*", ":");
-			if(null == tjingcaiDao.findTjingcaimatches(type, weekid, teamid, league, team, day)) {
+			Tjingcaimatches tjingcaimatches = tjingcaiDao.findTjingcaimatches(type, weekid, teamid, league, team, day);
+			Date datetime = getTime(time, 1);
+			if(null == tjingcaimatches) {
 				logger.info("开始处理event:{},weekid:{},teamid:{},league:{},team:{}", new String[]{event, String.valueOf(weekid.intValue()), teamid, league, team});
-				Date datetime = getTime(time, 1);
-				String unsupportStr = trim(tds.get(5).text());
 				String unsupport = "";
-				if(!StringUtil.isEmpty(unsupportStr)) {
-					String[] values = unsupportStr.split("\\:")[1].split(",");
-					unsupport = buildUnsupport(values);
-				}
-				if(jingcaiPeiluService.getPeilu_Football(weekid, teamid, league, team)) {
+				int result = jingcaiPeiluService.getPeilu_Football_J00001(weekid, teamid, league, team);
+				if(-1 != result) {
 					logger.info("存在赔率，event:" + event);
+					if(1 == result) {
+						unsupport = "J00013_0,J00013_1,";
+					}
+					if(2 == result) {
+						unsupport = "J00001_0,J00001_1,";
+					}
+					boolean exists = jingcaiPeiluService.getPeilu_Football_J00002(weekid, teamid, league, team);
+					if(!exists) {
+						unsupport += "J00002_0,J00002_1,";
+					}
+					exists = jingcaiPeiluService.getPeilu_Football_J00003(weekid, teamid, league, team);
+					if(!exists) {
+						unsupport += "J00003_0,J00003_1,";
+					}
+					exists = jingcaiPeiluService.getPeilu_Football_J00004(weekid, teamid, league, team);
+					if(!exists) {
+						unsupport += "J00004_0,J00004_1,";
+					}
+					if(!StringUtil.isEmpty(unsupport)) {
+						unsupport = unsupport.substring(0, unsupport.length() - 1);
+					}
 					saveMatches(type, weekid, day, teamid, league, team,
 							datetime, unsupport);
 				} else {
 					logger.info("不存在赔率，event:" + event);
 				}
+			} else {
+				checkUpdateTime(tjingcaimatches, datetime);
 			}
 		} catch(Exception e) {
 			logger.error("saveFootballMatches出错, tr:" + tr, e);
+		}
+	}
+
+	private void checkUpdateTime(Tjingcaimatches tjingcaimatches, Date datetime) {
+		if(!DateUtil.format(datetime).equals(DateUtil.format(tjingcaimatches.getTime()))) {
+			logger.info("比赛时间修改, day:{}, teamid:{}, team:{}, srcdate:{},desdate:{}", new String[] {tjingcaimatches.getDay(), tjingcaimatches.getTeamid(), tjingcaimatches.getTeam(), DateUtil.format(tjingcaimatches.getTime()), DateUtil.format(datetime)});
+			sendSMS.sendSMS(StringUtil.join("_", tjingcaimatches.getDay(), tjingcaimatches.getTeamid(), tjingcaimatches.getTeam()) +  " 时间修改 src:" + DateUtil.format(tjingcaimatches.getTime()) + ",des:" + DateUtil.format(datetime));
+			tjingcaiDao.updateTime(tjingcaimatches.getType(), tjingcaimatches.getDay(), tjingcaimatches.getWeekid(), tjingcaimatches.getTeamid(), datetime, getEndtime(datetime, String.valueOf(tjingcaimatches.getType().intValue())));
 		}
 	}
 
@@ -264,27 +299,48 @@ public class JingcaiDuizhenService {
 			logger.error("保存竞彩场次出错, matched:" + JsonUtil.toJson(tjingcaimatches), e);
 		}
 		
-		try {
-			logger.info("开始更新赛事简称:type:"+type+" day:"+day+" weekid:"+weekid+" teamid:"+teamid+" name:"+league);
-			Events events = eventsService.findEvent(type, league);
-			if(events!=null) {
-				tjingcaiDao.updateShortname(type, day, weekid, teamid, events.getShortname());
-			}
-			logger.info("更新赛事简称成功:type:"+type+" day:"+day+" weekid:"+weekid+" teamid:"+teamid+" name:"+league+" shortname:"+(null == events ? null : events.getShortname()));
-		}catch(Exception e) {
-			logger.error("更新赛事简称出错" + JsonUtil.toJson(tjingcaimatches), e);
-		}
+		updateShortnames(type, weekid, day, teamid, league, team);
 		if(!issend && !jingcaiaudit) {
 			sendSMS.sendSMS(msgstation+sendSMS.matchesMsg);
 			issend = true;
 		}
 	}
-	
-	public static void main(String[] args) throws Exception {
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Date now = sdf.parse("2013-04-17 02:45:00");
-		System.out.println(sdf.format(new JingcaiDuizhenService().getEndtime(now, "0")));
+
+	private void updateShortnames(BigDecimal type, BigDecimal weekid,
+			String day, String teamid, String league,String team) {
+		try {
+			logger.info("开始更新赛事简称:type={} day={} weekid={} teamid={} league={}",new String[]{type.toString(),day,weekid.toString(),teamid,league});
+			ShortNames forshortleague = null;
+			if(type.intValue()==0) {
+				forshortleague = shortnamedao.findJingcaiLQLeague(league);
+			}else {
+				forshortleague = shortnamedao.findJingcaiZQLeague(league);
+			}
+			if(forshortleague!=null) {
+				tjingcaiDao.updateShortname(type, day, weekid, teamid, forshortleague.getShortname());
+			}
+			logger.info("更新赛事简称成功:type={} day={} weekid={} teamid={} leagueshort={}",new String[]{type.toString(),day,weekid.toString(),teamid,null == forshortleague ? null : forshortleague.getShortname()});
+			
+			logger.info("开始更新球队简称:type={} day={} weekid={} teamid={} team={}",new String[]{type.toString(),day,weekid.toString(),teamid,team});
+			ShortNames forshorthost = null;
+			ShortNames forshortguest = null;
+			if(type.intValue()==0) {
+				forshorthost = shortnamedao.findJingcaiLQTeam(team.split(":")[0]);
+				forshortguest = shortnamedao.findJingcaiLQTeam(team.split(":")[1]);
+			}else {
+				forshorthost = shortnamedao.findJingcaiZQTeam(team.split(":")[0]);
+				forshortguest = shortnamedao.findJingcaiZQTeam(team.split(":")[1]);
+			}
+			if(forshorthost!=null&&forshortguest!=null) {
+				tjingcaiDao.updateTeamShortname(type, day, weekid, teamid, forshorthost.getShortname()+":"+forshortguest.getShortname());
+			}
+			logger.info("更新球队简称成功:type={} day={} weekid={} teamid={} teamshortname={}",new String[]{type.toString(),day,weekid.toString(),teamid,forshorthost!=null&&forshortguest!=null?forshorthost.getShortname()+":"+forshortguest.getShortname():null});
+		}catch(Exception e) {
+			logger.info("更新简称出错"+day+"_"+teamid,e);
+		}
 	}
+	
+
 	
 	public Date getEndtime(Date datetime,String type) {
 		Calendar calendar = Calendar.getInstance();
@@ -299,7 +355,7 @@ public class JingcaiDuizhenService {
 				if(hour < 7 || ( hour == 7 && min <= beforemin)) {
 					calendar.add(Calendar.DATE, -1);
 					calendar.set(Calendar.HOUR_OF_DAY, 23);
-					calendar.set(Calendar.MINUTE, 59 - Integer.parseInt(jingcaiParam.getValue()));
+					calendar.set(Calendar.MINUTE, (60 - Integer.parseInt(jingcaiParam.getValue())) == 60 ? 59 : 60 - Integer.parseInt(jingcaiParam.getValue()));
 					calendar.set(Calendar.SECOND, 0);
 					calendar.set(Calendar.MILLISECOND, 0);
 					return calendar.getTime();
@@ -315,14 +371,14 @@ public class JingcaiDuizhenService {
 					return getTime(datetime, 0 - Integer.parseInt(jingcaiParam.getValue()));
 				}
 				calendar.set(Calendar.HOUR_OF_DAY, 0);
-				calendar.set(Calendar.MINUTE, 59 - Integer.parseInt(jingcaiParam.getValue()));
+				calendar.set(Calendar.MINUTE, (60 - Integer.parseInt(jingcaiParam.getValue())) == 60 ? 59 : 60 - Integer.parseInt(jingcaiParam.getValue()));
 				calendar.set(Calendar.SECOND, 0);
 				calendar.set(Calendar.MILLISECOND, 0);
 				return calendar.getTime();
 			} else {
 				calendar.add(Calendar.DATE, -1);
 				calendar.set(Calendar.HOUR_OF_DAY, 23);
-				calendar.set(Calendar.MINUTE, 59 - Integer.parseInt(jingcaiParam.getValue()));
+				calendar.set(Calendar.MINUTE, (60 - Integer.parseInt(jingcaiParam.getValue())) == 60 ? 59 : 60 - Integer.parseInt(jingcaiParam.getValue()));
 				calendar.set(Calendar.SECOND, 0);
 				calendar.set(Calendar.MILLISECOND, 0);
 				return calendar.getTime();
@@ -330,14 +386,14 @@ public class JingcaiDuizhenService {
 		} else if(9 == hour  && min <= beforemin) {
 			if(1 == weekid || 2 == weekid) {
 				calendar.set(Calendar.HOUR_OF_DAY, 0);
-				calendar.set(Calendar.MINUTE, 59 - Integer.parseInt(jingcaiParam.getValue()));
+				calendar.set(Calendar.MINUTE, (60 - Integer.parseInt(jingcaiParam.getValue())) == 60 ? 59 : 60 - Integer.parseInt(jingcaiParam.getValue()));
 				calendar.set(Calendar.SECOND, 0);
 				calendar.set(Calendar.MILLISECOND, 0);
 				return calendar.getTime();
 			} else {
 				calendar.add(Calendar.DATE, -1);
 				calendar.set(Calendar.HOUR_OF_DAY, 23);
-				calendar.set(Calendar.MINUTE, 59 - Integer.parseInt(jingcaiParam.getValue()));
+				calendar.set(Calendar.MINUTE, (60 - Integer.parseInt(jingcaiParam.getValue())) == 60 ? 59 : 60 - Integer.parseInt(jingcaiParam.getValue()));
 				calendar.set(Calendar.SECOND, 0);
 				calendar.set(Calendar.MILLISECOND, 0);
 				return calendar.getTime();

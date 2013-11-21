@@ -113,6 +113,27 @@
 		</rollingPolicy>
 	</appender>
 	
+	<appender name="beidanannouncement"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/beidanannouncement.log</File>
+		<encoder>
+			<pattern>%-20(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %-5level %logger{80}.%method - %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/beidanannouncement%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
+	
+	<appender name="jingcaiannouncement"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.dir}/announcement.log</File>
+		<encoder>
+			<pattern>%-20(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %-5level %logger{80}.%method - %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.dir}/announcement%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
 	
 	<logger name="org.apache" level="ERROR" />
 	<logger name="org.hibernate.SQL" level="ERROR" />
@@ -160,7 +181,15 @@
 		level="info">
 		<appender-ref ref="beidanresult" />
 	</logger>
-
+	<logger name="com.ruyicai.prizecrawler.jingcai.JingcaiAnnouncementService" additivity="false"
+		level="info">
+		<appender-ref ref="jingcaiannouncement" />
+	</logger>
+	
+	<logger name="com.ruyicai.prizecrawler.beidan.BeidanAnnouncementService" additivity="false"
+		level="info">
+		<appender-ref ref="beidanannouncement" />
+	</logger>
 
     <root level="INFO">
 		<appender-ref ref="${logback.appender}" />

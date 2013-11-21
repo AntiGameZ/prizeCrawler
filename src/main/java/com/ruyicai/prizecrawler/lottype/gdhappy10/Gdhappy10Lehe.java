@@ -1,5 +1,8 @@
 package com.ruyicai.prizecrawler.lottype.gdhappy10;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,7 +23,8 @@ public class Gdhappy10Lehe {
 		PrizeInfo prizeInfo = new PrizeInfo();
 		try {
 			logger.info("开始从乐和彩抓取T01015开奖:期号" + batchcode);
-			Document doc = Jsoup.connect(URL).userAgent(SystemCode.UA_IE9)
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+			Document doc = Jsoup.connect(URL+"?d="+format.format(new Date())).userAgent(SystemCode.UA_IE9)
 					.timeout(4000).get();
 			Element ele = doc.select("#draw_list").first();
 			Elements trs = ele.select("tbody>tr");
@@ -57,7 +61,7 @@ public class Gdhappy10Lehe {
 	
 	
 	public static void main(String[] args) {
-		System.out.println(new Gdhappy10Lehe().carwlFromHappy10Lehe("2012112105"));
+		System.out.println(new Gdhappy10Lehe().carwlFromHappy10Lehe("2013060618"));
 	}
 	
 

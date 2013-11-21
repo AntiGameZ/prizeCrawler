@@ -2,9 +2,11 @@ package com.ruyicai.prizecrawler.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -88,8 +90,8 @@ public final class HttpTookit {
 		String response = null;
 		HttpClient client = new HttpClient();
 		HttpMethod method = new PostMethod(url);
-		client.getHttpConnectionManager().getParams().setConnectionTimeout(6000);
-		method.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, 15000);
+		client.getHttpConnectionManager().getParams().setConnectionTimeout(60000);
+		method.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, 150000);
 
 		// 设置Http Post数据
 		if (!params.isEmpty()) {
@@ -103,18 +105,105 @@ public final class HttpTookit {
 		}
 
 		try {
-			client.executeMethod(method);
-			System.out.println(method.getStatusCode());
-			if (method.getStatusCode() == HttpStatus.SC_OK) {
+			int statuscode = client.executeMethod(method);
+//			System.out.println(method.getStatusCode());
+			if (statuscode == HttpStatus.SC_OK) {
 				response = method.getResponseBodyAsString();
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
+			response = null;
 			logger.error("执行HTTP Post请求" + url + "时，发生异常！", e);
 		} finally {
 			method.releaseConnection();
 		}
 
 		return response;
+	}
+	
+	
+	public static String getResponse(String url, String method, String encoding, Map<String, String> params, int timeout) {
+		OutputStream out = null;
+		InputStream in = null;
+		
+		StringBuilder body = new StringBuilder();
+		for(String key:params.keySet()) {
+			body.append(key).append("=").append(params.get(key)).append("&");
+		}
+		
+		if(body.toString().endsWith("&")) {
+			body = body.deleteCharAt(body.toString().length()-1);
+		}
+		try {
+			URL postUrl = new URL(url);
+			HttpURLConnection conn = (HttpURLConnection) postUrl
+					.openConnection();
+			conn.setRequestProperty("Content-Type",
+					"application/x-www-form-urlencoded");
+			if(!"GET".equals(method)) {
+				conn.setDoOutput(true);
+			}
+			conn.setDoInput(true);
+			conn.setRequestMethod(method);
+			conn.setUseCaches(false);
+			conn.setInstanceFollowRedirects(true);
+			conn.setConnectTimeout(timeout);
+			conn.setReadTimeout(timeout);
+			conn.connect();
+			if(!"GET".equals(method)) {
+				if(!StringUtil.isEmpty(body.toString())) {
+					out = conn.getOutputStream();
+					out.write(body.toString().getBytes());
+					out.flush();
+				}
+			}
+			in = conn.getInputStream();
+			String result = read(in, encoding);
+			return result;
+		} catch (MalformedURLException e) {
+			logger.info("请求地址有误, url:" + url, e);
+			throw new RuntimeException("请求地址有误, url:" + url);
+		} catch (Exception e) {
+			logger.info("IO错误,url:" + url + ",body:" + body, e);
+			throw new RuntimeException("请求地址有误, url:" + url);
+		} finally {
+			close(in);
+			close(out);
+		}
+	}
+	
+	public static String read(InputStream in, String encoding) {
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(in, encoding));
+			StringBuilder builder = new StringBuilder();
+			String line = null;
+			while(null != (line = reader.readLine())) {
+				builder.append(line);
+			}
+			return builder.toString();
+		} catch(Exception e) {
+			throw new RuntimeException(e.getMessage(), e);
+		} finally {
+			close(in);
+		}
+	}
+	
+	private static void close(InputStream in) {
+		if(null != in) {
+			try {
+				in.close();
+			} catch(Exception e) {
+			} 
+		}
+	}
+	
+	private static void close(OutputStream out) {
+		if(null != out) {
+			try {
+				out.close();
+			} catch(Exception e) {
+				
+			}
+		}
 	}
 
 	public static String POST(String url, Map<String, String> params,
@@ -158,7 +247,7 @@ public final class HttpTookit {
 		while ((line = in.readLine()) != null) {
 			sTotalString += line;
 		}
-		System.out.println(sTotalString);
+//		System.out.println(sTotalString);
 		return sTotalString;
 
 	}
@@ -232,7 +321,7 @@ public final class HttpTookit {
 	 * @param winspecialcode
 	 * @return
 	 */
-	public static boolean noticeCode(String lotno,String batchcode,String winbasecode,String winspecialcode) {
+	public static boolean noticeCode(String lotno,String batchcode,String winbasecode,String winspecialcode,String variable) {
 
 		try {
 			Map<String, String> params = new HashMap<String, String>();
@@ -240,9 +329,12 @@ public final class HttpTookit {
 			params.put("batchcode", batchcode);
 			params.put("winbasecode", winbasecode);
 			params.put("winspecialcode", winspecialcode);
+			params.put("variable", variable);
 
 			logger.info("notice doPost:"+LOTTERY + "/system/draw");
-			String rep = doPost(LOTTERY + "/system/draw", params);
+//			String rep = doPost(LOTTERY + "/system/draw", params);
+			
+			String rep = getResponse(LOTTERY + "/system/draw", "POST", "UTF-8", params, 20000);
 			logger.info("notice 返回"+rep);
 			
 			JSONDeserializer<HashMap<String,Object>> json = new JSONDeserializer<HashMap<String,Object>>();

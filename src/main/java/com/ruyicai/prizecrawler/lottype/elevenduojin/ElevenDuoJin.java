@@ -127,7 +127,7 @@ public class ElevenDuoJin extends AbstractLottype{
 	@Override
 	public boolean isCrawl() {
 		
-		return true;
+		return configService.isCrawl("T01012");
 	}
 
 	@Override

@@ -10,6 +10,21 @@ public class SystemCode {
 	public static final int MAILOPEN = 1;
 	public static final int MAILCLOSE = 0;
 	
+	public static final int CRAWL_OPEN = 1;
+	public static final int CRAWL_CLOSE = 0;
+	
+	public static final int CRAWL_INIT = 0;
+	public static final int CRAWL_SUCCESS = 1;
+	public static final int CRAWL_FAIL = -1;
+	public static final int CRAWL_NOTNEED = 3;
+	
+	public static final int NOTICE_INIT = 0;
+	public static final int NOTICE_SUCCESS = 0;
+	public static final int NOTICE_FAIL = -1;
+	public static final int NOTICE_NOTNEED = 3;
+	
+	
+	
 	public static final String TYPE_CRAWL = "TYPE_CRAWL";
 	public static final String TYPE_NOTICE = "TYPE_NOTICE";
 	

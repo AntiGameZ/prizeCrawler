@@ -273,4 +273,50 @@ public class JingcaiController {
 		}
 		return rd;
 	}
+	
+	
+	
+	@RequestMapping(value = "/getJingcaiPeilu", method = RequestMethod.POST)
+	public @ResponseBody
+	ResponseData getJingcaiPeilu() {
+		ResponseData rd = new ResponseData();
+		rd.setErrorCode(ErrorCode.OK.value);
+		try {
+			jingcaiPeiluService.getJingcaiPeilu();
+		} catch(Exception e) {
+			logger.error(e.getMessage(), e);
+			rd.setErrorCode(ErrorCode.ERROR.value);
+		}
+		return rd;
+	}
+	
+	
+	@RequestMapping(value = "/getByDownload", method = RequestMethod.POST)
+	public @ResponseBody
+	ResponseData getByDownload() {
+		ResponseData rd = new ResponseData();
+		rd.setErrorCode(ErrorCode.OK.value);
+		try {
+			rd.setValue(jingcaiPeiluService.getBydownload());
+		} catch(Exception e) {
+			logger.error(e.getMessage(), e);
+			rd.setErrorCode(ErrorCode.ERROR.value);
+		}
+		return rd;
+	}
+	
+	
+	@RequestMapping(value = "/setByDownload", method = RequestMethod.POST)
+	public @ResponseBody
+	ResponseData setByDownload(@RequestParam("downloadstate") int downloadstate) {
+		ResponseData rd = new ResponseData();
+		rd.setErrorCode(ErrorCode.OK.value);
+		try {
+			jingcaiPeiluService.setBydownload(downloadstate);
+		} catch(Exception e) {
+			logger.error(e.getMessage(), e);
+			rd.setErrorCode(ErrorCode.ERROR.value);
+		}
+		return rd;
+	}
 }

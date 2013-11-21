@@ -63,4 +63,17 @@ public class SendEmailService {
 		}
 		return query.getSingleResult();
 	}
+	
+	
+	public boolean isCrawl(String lotno) {
+		try {
+			EmailNotice notice = findEmailNotice(lotno);
+			if(notice.getIscrawl()==SystemCode.CRAWL_CLOSE) {
+				return false;
+			}
+		}catch(Exception e) {
+			logger.info("isCrawl",e);
+		}
+		return true;
+	}
 }

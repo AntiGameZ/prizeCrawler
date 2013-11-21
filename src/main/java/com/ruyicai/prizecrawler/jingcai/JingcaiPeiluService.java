@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,8 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.json.JSONObject;
+import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +25,9 @@ import org.springframework.stereotype.Service;
 
 import com.ruyicai.prizecrawler.domain.Tjingcaimatches;
 import com.ruyicai.prizecrawler.jingcai.dao.TjingcaiDao;
+import com.ruyicai.prizecrawler.util.HttpTookit;
+import com.ruyicai.prizecrawler.util.HttpUtil;
 import com.ruyicai.prizecrawler.util.StringUtil;
-
-import flexjson.JSONDeserializer;
 
 @Service
 public class JingcaiPeiluService {
@@ -35,13 +38,15 @@ public class JingcaiPeiluService {
 
 	private static Map<String, Object> jingcaijsonpeilu = new HashMap<String, Object>();
 
-	private static final String FOOTBALL_DAN_J00001 = "http://info.sporttery.com/football/hhad_vp.php";
+	private static final String FOOTBALL_DAN_J00001 = "http://info.sporttery.com/football/had_vp.php";
 
 	private static final String FOOTBALL_DAN_J00002 = "http://info.sporttery.com/football/crs_single.php";
 
 	private static final String FOOTBALL_DAN_J00003 = "http://info.sporttery.com/football/ttg_vp.php";
 
 	private static final String FOOTBALL_DAN_J00004 = "http://info.sporttery.com/football/hafu_vp.php";
+	
+	private static final String FOOTBALL_DAN_J00013 = "http://info.sporttery.cn/football/hhad_vp.php";
 
 	private static final String BASKETBALL_DAN_J00005 = "http://info.sporttery.com/basketball/mnl_vp.php";
 
@@ -58,17 +63,36 @@ public class JingcaiPeiluService {
 	private static final String BASKETBALL_GUO_J00007 = "http://info.sporttery.com/basketball/wnm_list.php";
 
 	private static final String BASKETBALL_GUO_J00008 = "http://info.sporttery.com/basketball/hilo_list.php";
+	
+	private static final String FOOTBALL_GUO_J00001_J00013 = "http://i.sporttery.cn/odds_calculator/get_odds?i_format=json&i_callback=getData&poolcode[]=hhad&poolcode[]=had";
 
-	private static final String FOOTBALL_GUO = "http://info.sporttery.com/football/hhad_list.php";
+	private static final String FOOTBALL_GUO_J00002 = "http://i.sporttery.cn/odds_calculator/get_odds?i_format=json&i_callback=getData&poolcode[]=crs";
 
-	private static final String FOOTBALL_GUO_1 = "http://info.sporttery.com/interface/interface_wms.php?action=wf_list&pkey=";
-
+	private static final String FOOTBALL_GUO_J00003 = "http://i.sporttery.cn/odds_calculator/get_odds?i_format=json&i_callback=getData&poolcode[]=ttg";
+	
+	private static final String FOOTBALL_GUO_J00004 = "http://i.sporttery.cn/odds_calculator/get_odds?i_format=json&i_callback=getData&poolcode[]=hafu";
+	
 	private static final Map<String, BigDecimal> WEEKID = new HashMap<String, BigDecimal>();
 
 	private static final Map<Integer, Integer> WEEK = new HashMap<Integer, Integer>();
+	
+	private static int bydownload = 1;
+	
+	
+
+	public static int getBydownload() {
+		return bydownload;
+	}
+
+	public static void setBydownload(int bydownload) {
+		JingcaiPeiluService.bydownload = bydownload;
+	}
 
 	@Autowired
 	private TjingcaiDao tjingcaiDao;
+	
+	@Autowired
+	private HttpUtil httputil;
 
 	private int timeout = 30000;
 
@@ -99,7 +123,7 @@ public class JingcaiPeiluService {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new JingcaiPeiluService().getJingcaiPeilu();
+		new JingcaiPeiluService().getShuzi2("");
 	}
 
 	public void getJingcaiPeilu() {
@@ -141,49 +165,55 @@ public class JingcaiPeiluService {
 		logger.info("更新竞彩赔率信息结束");
 	}
 
-	public boolean getPeilu_Football(BigDecimal weekid, String teamid,
+	public int getPeilu_Football_J00001(BigDecimal weekid, String teamid,
 			String league, String team) throws Exception {
-		return getPeilu_Football_Guo(weekid, teamid, league, team);
+		return getPeilu_Football_Guo_J00001(weekid, teamid, league, team);
 	}
 
 	public String getHtml(String url) throws Exception {
 		return getJsoupDocument(url).html();
 	}
 
-	private boolean getPeilu_Football_Guo(BigDecimal weekidp, String teamidp,
+	@SuppressWarnings("unchecked")
+	private int getPeilu_Football_Guo_J00001(BigDecimal weekidp, String teamidp,
 			String leaguep, String teamp) throws Exception {
-		logger.info("开始获取足球过关赔率信息, url:{}", new String[] { FOOTBALL_GUO });
-		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_GUO);
-		org.jsoup.nodes.Element element = doc.getElementById("data2");
-		doc = getJsoupDocument(FOOTBALL_GUO_1 + trim(element.text()));
+		logger.info("开始获取足球胜平负过关赔率信息, url:{}", new String[] { FOOTBALL_GUO_J00001_J00013 });
+		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_GUO_J00001_J00013);
 		String data = doc.select("body").first().text();
-		data = data.substring(data.indexOf("[[["));
-		data = data.substring(0, data.indexOf("]]]") + 3);
-		JSONDeserializer<List<List<List<Object>>>> json = new JSONDeserializer<List<List<List<Object>>>>();
-		List<List<List<Object>>> list = json.deserialize(data);
-		for (List<List<Object>> list1 : list) {
-			String event = trim(list1.get(0).get(0).toString());
+		data = data.substring(8);
+		data = data.substring(0, data.length() - 2);
+		JSONObject jsonObject = new JSONObject(data).getJSONObject("data");
+		Iterator<String> keys = jsonObject.keys();
+		while(keys.hasNext()) {
+			String key = keys.next();
+			JSONObject object = jsonObject.getJSONObject(key);
+			String event = trim(object.getString("num"));
 			BigDecimal weekid = WEEKID.get(event.substring(0, 2));
 			String teamid = event.substring(2);
-
-			String team = list1.get(0).toString();
-			String letpoint = getLetpoint(team);
-			String replace = letpoint;
-			if (replace.startsWith("+") || replace.startsWith("-")) {
-				replace = "\\" + replace;
-			}
-			String league = trim(list1.get(0).get(1).toString());
-			team = trim((list1.get(0).get(2).toString()).replaceAll("\\$"
-					+ replace + "\\$", ":"));
-			team = team.replaceAll("\\$\\$", ":");
+			String league = trim(object.getString("l_cn"));
+			String team = trim(object.getString("h_cn")) + ":" + trim(object.getString("a_cn"));
 			if (weekidp.intValue() == weekid.intValue()
 					&& teamid.equals(teamidp) && league.equals(leaguep)
 					&& team.equals(teamp)) {
-				return true;
+				JSONObject hhad = null;
+				if(object.has("hhad")) {
+					hhad = object.getJSONObject("hhad");
+				}
+				if(null == hhad) {
+					return 1;
+				}
+				JSONObject had = null;
+				if(object.has("had")) {
+					had = object.getJSONObject("had");
+				}
+				if(null == had) {
+					return 2;
+				}
+				return 0;
 			}
 		}
-		logger.info("获取足球过关赔率信息结束, url:{}", new String[] { FOOTBALL_GUO });
-		return false;
+		logger.info("获取足球过关赔率信息结束, url:{}", new String[] { FOOTBALL_GUO_J00001_J00013 });
+		return -1;
 	}
 
 	private org.dom4j.Document getPeilu_Football_Guo(
@@ -197,9 +227,11 @@ public class JingcaiPeiluService {
 				Score score = footballGlobal.getScore(id);
 				Goal goal = footballGlobal.getGoal(id);
 				Half half = footballGlobal.getHalf(id);
+				LetVs letVs = footballGlobal.getLetVs(id);
 				org.dom4j.Element item = matchList.addElement("item");
 				item.addElement("id").setText(id);
 				addElement(Football_Vs.class, vs, item);
+				addElement(LetVs.class, letVs, item);
 				addElement(Score.class, score, item);
 				addElement(Goal.class, goal, item);
 				addElement(Half.class, half, item);
@@ -224,124 +256,265 @@ public class JingcaiPeiluService {
 	}
 
 	private FootballGlobal getPeilu_Football_Guo() throws Exception {
-		logger.info("开始获取足球过关赔率信息, url:{}", new String[] { FOOTBALL_GUO });
-		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_GUO);
-		org.jsoup.nodes.Element element = doc.getElementById("data2");
-		doc = getJsoupDocument(FOOTBALL_GUO_1 + trim(element.text()));
+		logger.info("开始获取足球过关赔率信息");
 		FootballGlobal footballGlobal = new FootballGlobal();
+		getPeilu_Football_Guo_J00001_J00013(footballGlobal);
+		getPeilu_Football_Guo_J00002(footballGlobal);
+		getPeilu_Football_Guo_J00003(footballGlobal);
+		getPeilu_Football_Guo_J00004(footballGlobal);
+		logger.info("获取足球过关赔率信息结束");
+		return footballGlobal;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void getPeilu_Football_Guo_J00001_J00013(FootballGlobal footballGlobal) throws Exception {
+		logger.info("开始获取足球胜平负过关赔率信息, url:{}", new String[] { FOOTBALL_GUO_J00001_J00013 });
+		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_GUO_J00001_J00013);
 		String data = doc.select("body").first().text();
-		data = data.substring(data.indexOf("[[["));
-		data = data.substring(0, data.indexOf("]]]") + 3);
-		JSONDeserializer<List<List<List<Object>>>> json = new JSONDeserializer<List<List<List<Object>>>>();
-		List<List<List<Object>>> list = json.deserialize(data);
-		for (List<List<Object>> list1 : list) {
-			String event = trim(list1.get(0).get(0).toString());
+		data = data.substring(8);
+		data = data.substring(0, data.length() - 2);
+		JSONObject jsonObject = new JSONObject(data).getJSONObject("data");
+		Iterator<String> keys = jsonObject.keys();
+		while(keys.hasNext()) {
+			String key = keys.next();
+			JSONObject object = jsonObject.getJSONObject(key);
+			String event = trim(object.getString("num"));
 			BigDecimal weekid = WEEKID.get(event.substring(0, 2));
 			String teamid = event.substring(2);
-
-			String team = list1.get(0).toString();
-			String letpoint = getLetpoint(team);
-			String replace = letpoint;
-			if (replace.startsWith("+") || replace.startsWith("-")) {
-				replace = "\\" + replace;
-			}
-			String league = trim(list1.get(0).get(1).toString());
-			team = trim((list1.get(0).get(2).toString()).replaceAll("\\$"
-					+ replace + "\\$", ":"));
-			team = team.replaceAll("\\$\\$", ":");
-
+			String league = trim(object.getString("l_cn"));
+			String team = trim(object.getString("h_cn")) + ":" + trim(object.getString("a_cn"));
 			Tjingcaimatches tjingcaimatches = tjingcaiDao.findTjingcaimatches(
 					BigDecimal.ONE, weekid, teamid, league, team);
 			if (null == tjingcaimatches) {
 				continue;
 			}
+			JSONObject hhad = null;
+			if(object.has("hhad")) {
+				hhad = object.getJSONObject("hhad");
+			}
+			if(null == hhad) {
+				hhad = new JSONObject();
+				hhad.put("fixedodds", "");
+				hhad.put("a", "");
+				hhad.put("d", "");
+				hhad.put("h", "");
+			}
 			String id = StringUtil.join("_", tjingcaimatches.getDay(),
 					String.valueOf(weekid.intValue()), teamid);
-			addVs(id, team.contains(letpoint) ? "0" : letpoint, footballGlobal, list1.get(1));
-			addScore(id, footballGlobal, list1.get(2));
-			addGoal(id, footballGlobal, list1.get(3));
-			addHalf(id, footballGlobal, list1.get(4));
+			footballGlobal.putLetVs(id, new LetVs(hhad.getString("fixedodds"), hhad.getString("a"), hhad.getString("d"), hhad.getString("h")));
+			JSONObject had = null;
+			if(object.has("had")) {
+				had = object.getJSONObject("had");
+			}
+			if(null == had) {
+				had = new JSONObject();
+				had.put("a", "");
+				had.put("d", "");
+				had.put("h", "");
+			}
+			footballGlobal.putVs(id, new Football_Vs(had.getString("a"), had.getString("d"), had.getString("h"), ""));
 		}
-		logger.info("获取足球过关赔率信息结束, url:{}", new String[] { FOOTBALL_GUO });
-		return footballGlobal;
+		logger.info("获取足球过关赔率信息结束, url:{}", new String[] { FOOTBALL_GUO_J00001_J00013 });
 	}
-
-	private void addHalf(String id, FootballGlobal footballGlobal,
-			List<Object> list) {
-		try {
-			footballGlobal.putHalf(id, new Half(list.get(0).toString(), list.get(1)
-					.toString(), list.get(2).toString(), list.get(3).toString(),
-					list.get(4).toString(), list.get(5).toString(), list.get(6)
-							.toString(), list.get(7).toString(), list.get(8)
-							.toString()));
-		}catch (Exception e) {
-			logger.error("存在未出赔率", e);
+	
+	@SuppressWarnings("unchecked")
+	public boolean getPeilu_Football_J00002(BigDecimal weekidp, String teamidp,
+			String leaguep, String teamp) throws Exception {
+		logger.info("开始获取足球胜平负过关赔率信息, url:{}", new String[] { FOOTBALL_GUO_J00002 });
+		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_GUO_J00002);
+		String data = doc.select("body").first().text();
+		data = data.substring(8);
+		data = data.substring(0, data.length() - 2);
+		JSONObject jsonObject = new JSONObject(data).getJSONObject("data");
+		Iterator<String> keys = jsonObject.keys();
+		while(keys.hasNext()) {
+			String key = keys.next();
+			JSONObject object = jsonObject.getJSONObject(key);
+			String event = trim(object.getString("num"));
+			BigDecimal weekid = WEEKID.get(event.substring(0, 2));
+			String teamid = event.substring(2);
+			String league = trim(object.getString("l_cn"));
+			String team = trim(object.getString("h_cn")) + ":" + trim(object.getString("a_cn"));
+			if(weekidp.intValue() == weekid.intValue() && teamidp.equals(teamid) && leaguep.equals(league) && teamp.equals(team)) {
+				return true;
+			}
 		}
-		
+		logger.info("获取足球过关赔率信息结束, url:{}", new String[] { FOOTBALL_GUO_J00002 });
+		return false;
 	}
-
-	private void addGoal(String id, FootballGlobal footballGlobal,
-			List<Object> list) {
-		footballGlobal.putGoal(id, new Goal(list.get(0).toString(), list.get(1)
-				.toString(), list.get(2).toString(), list.get(3).toString(),
-				list.get(4).toString(), list.get(5).toString(), list.get(6)
-						.toString(), list.get(7).toString()));
-	}
-
-	private void addScore(String id, FootballGlobal footballGlobal,
-			List<Object> list) {
-		Score score = new Score();
-		score.setV09(list.get(0).toString());
-		score.setV99(list.get(1).toString());
-		score.setV90(list.get(2).toString());
-		score.setV00(list.get(3).toString());
-		score.setV01(list.get(4).toString());
-		score.setV02(list.get(5).toString());
-		score.setV03(list.get(6).toString());
-		score.setV04(list.get(7).toString());
-		score.setV05(list.get(8).toString());
-		score.setV10(list.get(9).toString());
-		score.setV11(list.get(10).toString());
-		score.setV12(list.get(11).toString());
-		score.setV13(list.get(12).toString());
-		score.setV14(list.get(13).toString());
-		score.setV15(list.get(14).toString());
-		score.setV20(list.get(15).toString());
-		score.setV21(list.get(16).toString());
-		score.setV22(list.get(17).toString());
-		score.setV23(list.get(18).toString());
-		score.setV24(list.get(19).toString());
-		score.setV25(list.get(20).toString());
-		score.setV30(list.get(21).toString());
-		score.setV31(list.get(22).toString());
-		score.setV32(list.get(23).toString());
-		score.setV33(list.get(24).toString());
-		score.setV40(list.get(25).toString());
-		score.setV41(list.get(26).toString());
-		score.setV42(list.get(27).toString());
-		score.setV50(list.get(28).toString());
-		score.setV51(list.get(29).toString());
-		score.setV52(list.get(30).toString());
-		footballGlobal.putScore(id, score);
-	}
-
-	private void addVs(String id, String letpoint,
-			FootballGlobal footballGlobal, List<Object> list) {
-		footballGlobal.putVs(id, new Football_Vs(list.get(0).toString(), list
-				.get(1).toString(), list.get(2).toString(), letpoint));
-	}
-
-	private String getLetpoint(String team) {
-		String letpoint = "";
-		Pattern pattern = Pattern.compile(".*\\$(.*)\\$.*");
-		Matcher matcher = pattern.matcher(team);
-		if (matcher.find()) {
-			letpoint = matcher.group(1);
+	
+	@SuppressWarnings("unchecked")
+	private void getPeilu_Football_Guo_J00002(FootballGlobal footballGlobal) throws Exception {
+		logger.info("开始获取足球胜平负过关赔率信息, url:{}", new String[] { FOOTBALL_GUO_J00002 });
+		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_GUO_J00002);
+		String data = doc.select("body").first().text();
+		data = data.substring(8);
+		data = data.substring(0, data.length() - 2);
+		JSONObject jsonObject = new JSONObject(data).getJSONObject("data");
+		Iterator<String> keys = jsonObject.keys();
+		while(keys.hasNext()) {
+			String key = keys.next();
+			JSONObject object = jsonObject.getJSONObject(key);
+			String event = trim(object.getString("num"));
+			BigDecimal weekid = WEEKID.get(event.substring(0, 2));
+			String teamid = event.substring(2);
+			String league = trim(object.getString("l_cn"));
+			String team = trim(object.getString("h_cn")) + ":" + trim(object.getString("a_cn"));
+			Tjingcaimatches tjingcaimatches = tjingcaiDao.findTjingcaimatches(
+					BigDecimal.ONE, weekid, teamid, league, team);
+			if (null == tjingcaimatches) {
+				continue;
+			}
+			JSONObject crs = object.getJSONObject("crs");
+			String id = StringUtil.join("_", tjingcaimatches.getDay(),
+					String.valueOf(weekid.intValue()), teamid);
+			Score score = new Score();
+			score.setV09(crs.getString("-1-a"));
+			score.setV99(crs.getString("-1-d"));
+			score.setV90(crs.getString("-1-h"));
+			score.setV00(crs.getString("0000"));
+			score.setV01(crs.getString("0001"));
+			score.setV02(crs.getString("0002"));
+			score.setV03(crs.getString("0003"));
+			score.setV04(crs.getString("0004"));
+			score.setV05(crs.getString("0005"));
+			score.setV10(crs.getString("0100"));
+			score.setV11(crs.getString("0101"));
+			score.setV12(crs.getString("0102"));
+			score.setV13(crs.getString("0103"));
+			score.setV14(crs.getString("0104"));
+			score.setV15(crs.getString("0105"));
+			score.setV20(crs.getString("0200"));
+			score.setV21(crs.getString("0201"));
+			score.setV22(crs.getString("0202"));
+			score.setV23(crs.getString("0203"));
+			score.setV24(crs.getString("0204"));
+			score.setV25(crs.getString("0205"));
+			score.setV30(crs.getString("0300"));
+			score.setV31(crs.getString("0301"));
+			score.setV32(crs.getString("0302"));
+			score.setV33(crs.getString("0303"));
+			score.setV40(crs.getString("0400"));
+			score.setV41(crs.getString("0401"));
+			score.setV42(crs.getString("0402"));
+			score.setV50(crs.getString("0500"));
+			score.setV51(crs.getString("0501"));
+			score.setV52(crs.getString("0502"));
+			footballGlobal.putScore(id, score);
 		}
-		if (StringUtil.isEmpty(letpoint)) {
-			return "0";
+		logger.info("获取足球过关赔率信息结束, url:{}", new String[] { FOOTBALL_GUO_J00002 });
+	}
+	
+	@SuppressWarnings("unchecked")
+	public boolean getPeilu_Football_J00003(BigDecimal weekidp, String teamidp,
+			String leaguep, String teamp) throws Exception {
+		logger.info("开始获取足球胜平负过关赔率信息, url:{}", new String[] { FOOTBALL_GUO_J00003 });
+		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_GUO_J00003);
+		String data = doc.select("body").first().text();
+		data = data.substring(8);
+		data = data.substring(0, data.length() - 2);
+		JSONObject jsonObject = new JSONObject(data).getJSONObject("data");
+		Iterator<String> keys = jsonObject.keys();
+		while(keys.hasNext()) {
+			String key = keys.next();
+			JSONObject object = jsonObject.getJSONObject(key);
+			String event = trim(object.getString("num"));
+			BigDecimal weekid = WEEKID.get(event.substring(0, 2));
+			String teamid = event.substring(2);
+			String league = trim(object.getString("l_cn"));
+			String team = trim(object.getString("h_cn")) + ":" + trim(object.getString("a_cn"));
+			if(weekidp.intValue() == weekid.intValue() && teamidp.equals(teamid) && leaguep.equals(league) && teamp.equals(team)) {
+				return true;
+			}
 		}
-		return letpoint;
+		logger.info("获取足球过关赔率信息结束, url:{}", new String[] { FOOTBALL_GUO_J00003 });
+		return false;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void getPeilu_Football_Guo_J00003(FootballGlobal footballGlobal) throws Exception {
+		logger.info("开始获取足球胜平负过关赔率信息, url:{}", new String[] { FOOTBALL_GUO_J00003 });
+		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_GUO_J00003);
+		String data = doc.select("body").first().text();
+		data = data.substring(8);
+		data = data.substring(0, data.length() - 2);
+		JSONObject jsonObject = new JSONObject(data).getJSONObject("data");
+		Iterator<String> keys = jsonObject.keys();
+		while(keys.hasNext()) {
+			String key = keys.next();
+			JSONObject object = jsonObject.getJSONObject(key);
+			String event = trim(object.getString("num"));
+			BigDecimal weekid = WEEKID.get(event.substring(0, 2));
+			String teamid = event.substring(2);
+			String league = trim(object.getString("l_cn"));
+			String team = trim(object.getString("h_cn")) + ":" + trim(object.getString("a_cn"));
+			Tjingcaimatches tjingcaimatches = tjingcaiDao.findTjingcaimatches(
+					BigDecimal.ONE, weekid, teamid, league, team);
+			if (null == tjingcaimatches) {
+				continue;
+			}
+			JSONObject ttg = object.getJSONObject("ttg");
+			String id = StringUtil.join("_", tjingcaimatches.getDay(),
+					String.valueOf(weekid.intValue()), teamid);
+			footballGlobal.putGoal(id, new Goal(ttg.getString("s0"), ttg.getString("s1"), ttg.getString("s2"), ttg.getString("s3"), ttg.getString("s4"), ttg.getString("s5"), ttg.getString("s6"), ttg.getString("s7")));
+		}
+		logger.info("获取足球过关赔率信息结束, url:{}", new String[] { FOOTBALL_GUO_J00003 });
+	}
+	
+	@SuppressWarnings("unchecked")
+	public boolean getPeilu_Football_J00004(BigDecimal weekidp, String teamidp,
+			String leaguep, String teamp) throws Exception {
+		logger.info("开始获取足球胜平负过关赔率信息, url:{}", new String[] { FOOTBALL_GUO_J00004 });
+		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_GUO_J00004);
+		String data = doc.select("body").first().text();
+		data = data.substring(8);
+		data = data.substring(0, data.length() - 2);
+		JSONObject jsonObject = new JSONObject(data).getJSONObject("data");
+		Iterator<String> keys = jsonObject.keys();
+		while(keys.hasNext()) {
+			String key = keys.next();
+			JSONObject object = jsonObject.getJSONObject(key);
+			String event = trim(object.getString("num"));
+			BigDecimal weekid = WEEKID.get(event.substring(0, 2));
+			String teamid = event.substring(2);
+			String league = trim(object.getString("l_cn"));
+			String team = trim(object.getString("h_cn")) + ":" + trim(object.getString("a_cn"));
+			if(weekidp.intValue() == weekid.intValue() && teamidp.equals(teamid) && leaguep.equals(league) && teamp.equals(team)) {
+				return true;
+			}
+		}
+		logger.info("获取足球过关赔率信息结束, url:{}", new String[] { FOOTBALL_GUO_J00004 });
+		return false;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void getPeilu_Football_Guo_J00004(FootballGlobal footballGlobal) throws Exception {
+		logger.info("开始获取足球胜平负过关赔率信息, url:{}", new String[] { FOOTBALL_GUO_J00004 });
+		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_GUO_J00004);
+		String data = doc.select("body").first().text();
+		data = data.substring(8);
+		data = data.substring(0, data.length() - 2);
+		JSONObject jsonObject = new JSONObject(data).getJSONObject("data");
+		Iterator<String> keys = jsonObject.keys();
+		while(keys.hasNext()) {
+			String key = keys.next();
+			JSONObject object = jsonObject.getJSONObject(key);
+			String event = trim(object.getString("num"));
+			BigDecimal weekid = WEEKID.get(event.substring(0, 2));
+			String teamid = event.substring(2);
+			String league = trim(object.getString("l_cn"));
+			String team = trim(object.getString("h_cn")) + ":" + trim(object.getString("a_cn"));
+			Tjingcaimatches tjingcaimatches = tjingcaiDao.findTjingcaimatches(
+					BigDecimal.ONE, weekid, teamid, league, team);
+			if (null == tjingcaimatches) {
+				continue;
+			}
+			JSONObject hafu = object.getJSONObject("hafu");
+			String id = StringUtil.join("_", tjingcaimatches.getDay(),
+					String.valueOf(weekid.intValue()), teamid);
+			footballGlobal.putHalf(id, new Half(hafu.getString("aa"), hafu.getString("ad"), hafu.getString("ah"), hafu.getString("da"), hafu.getString("dd"), hafu.getString("dh"), hafu.getString("ha"), hafu.getString("hd"), hafu.getString("hh")));
+		}
+		logger.info("获取足球过关赔率信息结束, url:{}", new String[] { FOOTBALL_GUO_J00004 });
 	}
 
 	private org.dom4j.Document getPeilu_Basketball_Guo(
@@ -388,7 +561,7 @@ public class JingcaiPeiluService {
 		List<org.jsoup.nodes.Element> trs = table.select("tr");
 		for (org.jsoup.nodes.Element tr : trs) {
 			List<org.jsoup.nodes.Element> tds = tr.select("td");
-			if (null != tds && tds.size() == 8) {
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
 				buildBasketball_Guo_J00005(tds, basketballGlobal);
 			}
 		}
@@ -425,7 +598,7 @@ public class JingcaiPeiluService {
 		List<org.jsoup.nodes.Element> trs = doc.select(".tbl").select("tr");
 		for (org.jsoup.nodes.Element tr : trs) {
 			List<org.jsoup.nodes.Element> tds = tr.select("td");
-			if (null != tds && tds.size() == 8) {
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
 				buildBasketball_Guo_J00006(basketballGlobal, tds);
 			}
 		}
@@ -461,7 +634,7 @@ public class JingcaiPeiluService {
 		String id = StringUtil.join("_", tjingcaimatches.getDay(),
 				String.valueOf(weekid.intValue()), teamid);
 
-		basketballGlobal.putLetvs(id, new LetVs(team.contains(letpoint) ? "0" : letpoint, v0, v3));
+		basketballGlobal.putLetvs(id, new LetVs(team.contains(letpoint) ? "0" : letpoint, v0, "", v3));
 	}
 
 	private void buildBasketball_Guo_J00007(BasketballGlobal basketballGlobal)
@@ -473,7 +646,7 @@ public class JingcaiPeiluService {
 		Date date = getDate();
 		for (org.jsoup.nodes.Element tr : trs) {
 			List<org.jsoup.nodes.Element> tds = tr.select("td");
-			if (null != tds && tds.size() == 11) {
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
 				buildBasketball_Guo_J00007(basketballGlobal, tds, date);
 			}
 		}
@@ -530,7 +703,7 @@ public class JingcaiPeiluService {
 		List<org.jsoup.nodes.Element> trs = doc.select(".tbl").select("tr");
 		for (org.jsoup.nodes.Element tr : trs) {
 			List<org.jsoup.nodes.Element> tds = tr.select("td");
-			if (null != tds && tds.size() == 7) {
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
 				buildBasketball_Guo_J00008(basketballGlobal, tds);
 			}
 		}
@@ -619,7 +792,7 @@ public class JingcaiPeiluService {
 		List<org.jsoup.nodes.Element> trs = doc.select(".tbl").select("tr");
 		for (org.jsoup.nodes.Element tr : trs) {
 			List<org.jsoup.nodes.Element> tds = tr.select("td");
-			if (null != tds && tds.size() == 8) {
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
 				buildBasketball_Dan_J00008(basketballGlobal, tds);
 			}
 		}
@@ -659,7 +832,7 @@ public class JingcaiPeiluService {
 		List<org.jsoup.nodes.Element> trs = doc.select(".tbl").select("tr");
 		for (org.jsoup.nodes.Element tr : trs) {
 			List<org.jsoup.nodes.Element> tds = tr.select("td");
-			if (null != tds && tds.size() == 11) {
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
 				buildBasketball_Dan_J00007(basketballGlobal, tds);
 			}
 		}
@@ -715,7 +888,7 @@ public class JingcaiPeiluService {
 		List<org.jsoup.nodes.Element> trs = doc.select(".tbl").select("tr");
 		for (org.jsoup.nodes.Element tr : trs) {
 			List<org.jsoup.nodes.Element> tds = tr.select("td");
-			if (null != tds && tds.size() == 9) {
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
 				buildBasketball_Dan_J00006(basketballGlobal, tds);
 			}
 		}
@@ -752,7 +925,7 @@ public class JingcaiPeiluService {
 		String id = StringUtil.join("_", tjingcaimatches.getDay(),
 				String.valueOf(weekid.intValue()), teamid);
 
-		basketballGlobal.putLetvs(id, new LetVs(team.contains(letpoint) ? "0" : letpoint, v0, v3));
+		basketballGlobal.putLetvs(id, new LetVs(team.contains(letpoint) ? "0" : letpoint, v0, "", v3));
 	}
 
 	private void buildBasketball_Dan_J00005(BasketballGlobal basketballGlobal)
@@ -764,12 +937,12 @@ public class JingcaiPeiluService {
 		List<org.jsoup.nodes.Element> trs = table.select("tr");
 		for (org.jsoup.nodes.Element tr : trs) {
 			List<org.jsoup.nodes.Element> tds = tr.select("td");
-			if (null != tds && tds.size() == 6) {
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
 				buildBasketball_Dan_J00005(tds, basketballGlobal);
 			}
 		}
-		logger.info("获取FOOTBALL_DAN_J00001结束, url:{}",
-				new String[] { FOOTBALL_DAN_J00001 });
+		logger.info("获取BASKETBALL_DAN_J00005结束, url:{}",
+				new String[] { BASKETBALL_DAN_J00005 });
 	}
 
 	private void buildBasketball_Dan_J00005(List<org.jsoup.nodes.Element> tds,
@@ -798,17 +971,19 @@ public class JingcaiPeiluService {
 	private org.dom4j.Document getPeilu_Football_Dan(
 			FootballGlobal footballGlobal, List<String> list) throws Exception {
 		org.dom4j.Element matchList = getMatchList();
-		for (Entry<String, Football_Vs> entry : footballGlobal.getVsmap()
+		for (Entry<String, LetVs> entry : footballGlobal.getLetvsmap()
 				.entrySet()) {
 			String id = entry.getKey();
 			if (list.contains(id)) {
-				Football_Vs vs = entry.getValue();
+				LetVs letVs = entry.getValue();
 				Score score = footballGlobal.getScore(id);
 				Goal goal = footballGlobal.getGoal(id);
 				Half half = footballGlobal.getHalf(id);
+				Football_Vs vs = footballGlobal.getVs(id);
 				org.dom4j.Element item = matchList.addElement("item");
 				item.addElement("id").setText(id);
 				addElement(Football_Vs.class, vs, item);
+				addElement(LetVs.class, letVs, item);
 				addElement(Score.class, score, item);
 				addElement(Goal.class, goal, item);
 				addElement(Half.class, half, item);
@@ -850,18 +1025,27 @@ public class JingcaiPeiluService {
 		try {
 			buildFootball_Dan_J00001(footballGlobal);
 		} catch (Exception e) {
+			logger.info("buildFootball_Dan_J00001 err",e);
 		}
 		try {
 			buildFootball_Dan_J00002(footballGlobal);
 		} catch (Exception e) {
+			logger.info("buildFootball_Dan_J00002 err",e);
 		}
 		try {
 			buildFootball_Dan_J00003(footballGlobal);
 		} catch (Exception e) {
+			logger.info("buildFootball_Dan_J00003 err",e);
 		}
 		try {
 			buildFootball_Dan_J00004(footballGlobal);
 		} catch (Exception e) {
+			logger.info("buildFootball_Dan_J00004 err",e);
+		}
+		try {
+			buildFootball_Dan_J00013(footballGlobal);
+		} catch(Exception e) {
+			logger.info("buildFootball_Dan_J00013 err",e);
 		}
 		return footballGlobal;
 	}
@@ -875,7 +1059,7 @@ public class JingcaiPeiluService {
 		List<org.jsoup.nodes.Element> trs = element.select("tr");
 		for (org.jsoup.nodes.Element tr : trs) {
 			List<org.jsoup.nodes.Element> tds = tr.select("td");
-			if (null != tds && tds.size() == 13) {
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
 				buildFootball_Dan_J00004(tds, footballGlobal);
 			}
 		}
@@ -921,7 +1105,7 @@ public class JingcaiPeiluService {
 		List<org.jsoup.nodes.Element> trs = element.select("tr");
 		for (org.jsoup.nodes.Element tr : trs) {
 			List<org.jsoup.nodes.Element> tds = tr.select("td");
-			if (null != tds && tds.size() == 12) {
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
 				buildFootball_Dan_J00003(tds, footballGlobal);
 			}
 		}
@@ -960,7 +1144,15 @@ public class JingcaiPeiluService {
 			throws Exception {
 		logger.info("开始获取FOOTBALL_DAN_J00002, url:{}",
 				new String[] { FOOTBALL_DAN_J00002 });
-		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_DAN_J00002);
+		
+		org.jsoup.nodes.Document doc = null;
+		
+		if(bydownload==1) {
+			doc = getJsoupDocumentByDownload(FOOTBALL_DAN_J00002);
+		}else {
+			doc = getJsoupDocument(FOOTBALL_DAN_J00002);
+		}
+		
 		List<org.jsoup.nodes.Element> divs = doc.select(".titleScore");
 		for (org.jsoup.nodes.Element div : divs) {
 			org.jsoup.nodes.Element h3 = div.select("h3").first();
@@ -1038,15 +1230,32 @@ public class JingcaiPeiluService {
 		List<org.jsoup.nodes.Element> trs = table.select("tr");
 		for (org.jsoup.nodes.Element tr : trs) {
 			List<org.jsoup.nodes.Element> tds = tr.select("td");
-			if (null != tds && tds.size() == 8) {
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
 				buildFootball_Dan_J00001(tds, footballGlobal);
 			}
 		}
 		logger.info("获取FOOTBALL_DAN_J00001结束, url:{}",
 				new String[] { FOOTBALL_DAN_J00001 });
 	}
+	
+	private void buildFootball_Dan_J00013(FootballGlobal footballGlobal)
+			throws Exception {
+		logger.info("开始获取FOOTBALL_DAN_J00013, url:{}",
+				new String[] { FOOTBALL_DAN_J00013 });
+		org.jsoup.nodes.Document doc = getJsoupDocument(FOOTBALL_DAN_J00013);
+		org.jsoup.nodes.Element table = doc.getElementById("jumpTable");
+		List<org.jsoup.nodes.Element> trs = table.select("tr");
+		for (org.jsoup.nodes.Element tr : trs) {
+			List<org.jsoup.nodes.Element> tds = tr.select("td");
+			if(null != tds && tds.size() > 0 && trim(tds.get(0).text()).matches("周.\\d{3}")) {
+				buildFootball_Dan_J00013(tds, footballGlobal);
+			}
+		}
+		logger.info("获取FOOTBALL_DAN_J00013结束, url:{}",
+				new String[] { FOOTBALL_DAN_J00013 });
+	}
 
-	private void buildFootball_Dan_J00001(List<org.jsoup.nodes.Element> tds,
+	private void buildFootball_Dan_J00013(List<org.jsoup.nodes.Element> tds,
 			FootballGlobal footballGlobal) throws Exception {
 		String event = trim(tds.get(0).text());
 		BigDecimal weekid = WEEKID.get(event.substring(0, 2));
@@ -1056,7 +1265,7 @@ public class JingcaiPeiluService {
 		String v1 = trim(tds.get(5).text());
 		String v0 = trim(tds.get(6).text());
 		String team = trim(tds.get(2).text());
-		String letpoint = getShuzi(team);
+		String letpoint = getShuzi2(team);
 		String replace = letpoint;
 		if (replace.startsWith("+") || replace.startsWith("-")) {
 			replace = "\\" + replace;
@@ -1071,12 +1280,39 @@ public class JingcaiPeiluService {
 		}
 		String id = StringUtil.join("_", tjingcaimatches.getDay(),
 				String.valueOf(weekid.intValue()), teamid);
-		footballGlobal.putVs(id, new Football_Vs(v0, v1, v3, team.contains(letpoint) ? "0" : letpoint));
+		footballGlobal.putLetVs(id, new LetVs(team.contains(letpoint) ? "0" : letpoint, v0, v1, v3));
+	}
+	
+	private void buildFootball_Dan_J00001(List<org.jsoup.nodes.Element> tds,
+			FootballGlobal footballGlobal) throws Exception {
+		String event = trim(tds.get(0).text());
+		BigDecimal weekid = WEEKID.get(event.substring(0, 2));
+		String teamid = event.substring(2);
+
+		String v3 = trim(tds.get(4).text());
+		String v1 = trim(tds.get(5).text());
+		String v0 = trim(tds.get(6).text());
+		String team = trim(tds.get(2).text());
+		String league = trim(tds.get(1).text());
+		team = trim(tds.get(2).text()).replaceAll("\\s*VS\\s*", ":");
+		Tjingcaimatches tjingcaimatches = tjingcaiDao.findTjingcaimatches(
+				BigDecimal.ONE, weekid, teamid, league, team);
+		if (null == tjingcaimatches) {
+			return;
+		}
+		String id = StringUtil.join("_", tjingcaimatches.getDay(),
+				String.valueOf(weekid.intValue()), teamid);
+		footballGlobal.putVs(id, new Football_Vs(v0, v1, v3, ""));
 	}
 
 	private org.jsoup.nodes.Document getJsoupDocument(String url)
 			throws Exception {
 		return org.jsoup.Jsoup.connect(url).timeout(timeout).get();
+	}
+	
+	private org.jsoup.nodes.Document getJsoupDocumentByDownload(String url)
+			throws Exception {
+		return Jsoup.parse(httputil.getResponse(url, httputil.GET, httputil.GB2312, ""));
 	}
 
 	private String getShuzi(String team) {
@@ -1087,6 +1323,16 @@ public class JingcaiPeiluService {
 			result = matcher.group(1);
 		}
 		return null == result ? "0" : result;
+	}
+	
+	private String getShuzi2(String team) {
+		Pattern pattern = Pattern.compile("(\\(\\+?\\-?\\d+\\.?\\d*\\))");
+		Matcher matcher = pattern.matcher(team);
+		String result = null;
+		while (matcher.find()) {
+			result = matcher.group(1);
+		}
+		return null == result ? "0" : result.substring(1, result.length() - 1);
 	}
 
 	private String trim(String content) {
@@ -1577,13 +1823,22 @@ public class JingcaiPeiluService {
 		private Map<String, Score> scoremap = new HashMap<String, Score>();
 		private Map<String, Goal> goalmap = new HashMap<String, Goal>();
 		private Map<String, Half> halfmap = new HashMap<String, Half>();
-
+		private Map<String ,LetVs> letvsmap = new HashMap<String, LetVs>();
+		
+		public void putLetVs(String id, LetVs letVs) {
+			letvsmap.put(id, letVs);
+		}
+		
 		public void putVs(String id, Football_Vs vs) {
 			vsmap.put(id, vs);
 		}
 
 		public Football_Vs getVs(String id) {
 			return vsmap.get(id);
+		}
+		
+		public LetVs getLetVs(String id) {
+			return letvsmap.get(id);
 		}
 
 		public void putScore(String id, Score score) {
@@ -1641,6 +1896,14 @@ public class JingcaiPeiluService {
 		public void setHalfmap(Map<String, Half> halfmap) {
 			this.halfmap = halfmap;
 		}
+
+		public Map<String, LetVs> getLetvsmap() {
+			return letvsmap;
+		}
+
+		public void setLetvsmap(Map<String, LetVs> letvsmap) {
+			this.letvsmap = letvsmap;
+		}
 	}
 
 	class Basketball_Vs {
@@ -1672,11 +1935,13 @@ public class JingcaiPeiluService {
 	class LetVs {
 		private String letPoint;
 		private String v0;
+		private String v1;
 		private String v3;
 
-		public LetVs(String letPoint, String v0, String v3) {
+		public LetVs(String letPoint, String v0, String v1, String v3) {
 			this.letPoint = letPoint;
 			this.v0 = v0;
+			this.v1 = v1;
 			this.v3 = v3;
 		}
 
@@ -1694,6 +1959,14 @@ public class JingcaiPeiluService {
 
 		public void setV0(String v0) {
 			this.v0 = v0;
+		}
+
+		public String getV1() {
+			return v1;
+		}
+
+		public void setV1(String v1) {
+			this.v1 = v1;
 		}
 
 		public String getV3() {

@@ -125,7 +125,7 @@ public class DuoLeCai extends AbstractLottype{
 	@Override
 	public boolean isCrawl() {
 		
-		return true;
+		return configService.isCrawl("T01010");
 	}
 
 

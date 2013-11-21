@@ -122,7 +122,7 @@ public class NoticeTime {
 
 		if (HttpTookit.noticeCode(notification.getLotno(),
 				notification.getBatchcode(), notification.getWinbasecode(),
-				notification.getWinspecialcode())) {
+				notification.getWinspecialcode(),"")) {
 			notification.setNoticetimes(notification.getNoticetimes() + 1);
 			notification.setNoticestate(NoticeStateType.SUCCESS.value);
 			notification.setNoticedate(new Date());

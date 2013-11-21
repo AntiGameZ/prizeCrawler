@@ -34,14 +34,14 @@
 		<repository>
 			<id>ruyicai</id>
 			<name>Ruyicai Repository</name>
-			<url>http://202.43.152.162:8181/nexus/content/repositories/public/</url>
+			<url>http://192.168.0.186:8181/nexus/content/repositories/public/</url>
 		</repository>
 	</repositories>
 	<pluginRepositories>
 		<pluginRepository>
 			<id>ruyicai</id>
 			<name>Ruyicai Repository</name>
-			<url>http://202.43.152.162:8181/nexus/content/repositories/public/</url>
+			<url>http://192.168.0.186:8181/nexus/content/repositories/public/</url>
 		</pluginRepository>
 	</pluginRepositories>
 	<dependencies>
@@ -362,9 +362,10 @@
 			<version>1.2</version>
 		</dependency>
 		<dependency>
-			<groupId>com.thoughtworks.xstream</groupId>
-			<artifactId>xstream</artifactId>
-			<version>1.4.4</version>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20080701</version>
+			<type>jar</type>
 		</dependency>
 	</dependencies>
 	<build>
@@ -407,12 +408,14 @@
 	<profiles>
 		<profile>
 			<id>local</id>
-			
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<properties>
 				<database.driverClassName>com.mysql.jdbc.Driver</database.driverClassName>
-				<database.url>jdbc:mysql://127.0.0.1:3306/prizeCrawler</database.url>
-				<database.username>root</database.username>
-				<database.password>root</database.password>
+				<database.url>jdbc:mysql://192.168.0.92:3306/prizeCrawler</database.url>
+				<database.username>jrtConsole</database.username>
+				<database.password>jrtConsole</database.password>
 				<database.initialSize>20</database.initialSize>
 				<database.maxActive>20</database.maxActive>
 				<database.maxIdle>20</database.maxIdle>
@@ -420,9 +423,11 @@
 				<database.maxWait>20</database.maxWait>
 				<database.partitionCount>1</database.partitionCount>
 				<tomcat.manager.port>8080</tomcat.manager.port>
-				<activemq.brokerURL>tcp://127.0.0.1:61616</activemq.brokerURL>
+				<activemq.lottery.brokerURL>tcp://127.0.0.1:61616</activemq.lottery.brokerURL>
+				<activemq.lotserver.brokerURL>tcp://192.168.0.42:61616</activemq.lotserver.brokerURL>
 				<logback.appender>STDOUT</logback.appender>
-				<url.lottery>http://219.148.162.76:8080/lottery</url.lottery>
+				<url.lottery>http://localhost:8888/lottery</url.lottery>
+				<url.dataanalysis>http://192.168.0.42/dataanalysis</url.dataanalysis>
 				<waittime.F47102>60000</waittime.F47102>
 				<waittime.F47103>60000</waittime.F47103>
 				<waittime.F47104>60000</waittime.F47104>
@@ -431,31 +436,37 @@
 				<waittime.T01011>60000</waittime.T01011>
 				<waittime.T01009>60000</waittime.T01009>
 				<waittime.T01013>60000</waittime.T01013>
-				<quartz.fastOpenCrawl><![CDATA[*/25 * 0-3 * * ?]]></quartz.fastOpenCrawl>
-				<quartz.fastOpenNotice><![CDATA[*/50 * 0-3 * * ?]]></quartz.fastOpenNotice>
+				<quartz.fastOpenCrawl><![CDATA[*/25 * 0-23 * * ?]]></quartz.fastOpenCrawl>
+				<quartz.fastOpenNotice><![CDATA[*/50 * 0-23 * * ?]]></quartz.fastOpenNotice>
 				<quartz.daPanCrawl><![CDATA[0 */1 0-3 * * ?]]></quartz.daPanCrawl>
 				<quartz.daPanNotice><![CDATA[0 */1 0-3 * * ?]]></quartz.daPanNotice>
 				<quartz.guanyajunMatch><![CDATA[0 */3 0-3 * * ?]]></quartz.guanyajunMatch>
-				<quartz.jingcaipeilv><![CDATA[*/25 * 0-3 * * ?]]></quartz.jingcaipeilv>
-				<quartz.jingcaiduizhen><![CDATA[0 */1 0-3 * * ?]]></quartz.jingcaiduizhen>
-				<quartz.jingcairesult><![CDATA[0 */3 0-3 * * ?]]></quartz.jingcairesult>
-				<twodatabase.url>jdbc:mysql://127.0.0.1:3306/news</twodatabase.url>
+				<quartz.jingcaipeilv><![CDATA[0 */2 * * * ?]]></quartz.jingcaipeilv>
+				<quartz.jingcaiduizhen><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcaiduizhen>
+				<quartz.jingcairesult><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcairesult>
+				<quartz.jingcaiannouncement><![CDATA[0 */5 * * * ?]]></quartz.jingcaiannouncement>
+				<quartz.footballletpoint><![CDATA[0 */2 * * * ?]]></quartz.footballletpoint>
+				<quartz.basketballletpoint><![CDATA[0 */2 * * * ?]]></quartz.basketballletpoint>
+				<quartz.beidanduizhen><![CDATA[0 */2 8-22 * * ?]]></quartz.beidanduizhen>
+				<quartz.beidanpeilv><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanpeilv>
+				<quartz.beidanresult><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanresult>
+				<quartz.beidanannouncement><![CDATA[0 */5 0-23 * * ?]]></quartz.beidanannouncement>
+				<twodatabase.url>jdbc:mysql://192.168.0.92:3306/news</twodatabase.url>
 				<twodatabase.driverClassName>com.mysql.jdbc.Driver</twodatabase.driverClassName>
-				<twodatabase.username>root</twodatabase.username>
-				<twodatabase.password>root</twodatabase.password>
+				<twodatabase.username>jrtConsole</twodatabase.username>
+				<twodatabase.password>jrtConsole</twodatabase.password>
 				<sendsmsurl></sendsmsurl>
 				<sendsmsmobiles></sendsmsmobiles>
 				<jingcai.audit>true</jingcai.audit>
 				<jingcai.duizhenaudit>true</jingcai.duizhenaudit>
 				<msg.station>local</msg.station>
+				<jingcai.biguser>true</jingcai.biguser>
 			</properties>
 		</profile>
 
 		<profile>
 			<id>118</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
+
 			<properties>
 				<database.url>jdbc:mysql://192.168.0.92:3306/prizeCrawler?characterEncoding=utf-8</database.url>
 				<database.driverClassName>com.mysql.jdbc.Driver</database.driverClassName>
@@ -463,10 +474,12 @@
 				<database.password>jrtConsole</database.password>
 				<tomcat.manager.url>http://192.168.0.42:8080/manager</tomcat.manager.url>
 				<tomcat.manager.port>80</tomcat.manager.port>
-				<activemq.brokerURL>tcp://192.168.0.92:61616</activemq.brokerURL>
+				<activemq.lottery.brokerURL>tcp://192.168.0.92:61616</activemq.lottery.brokerURL>
+				<activemq.lotserver.brokerURL>tcp://192.168.0.42:61616</activemq.lotserver.brokerURL>
 				<logback.appender>prizeCrawlerLog</logback.appender>
-				<log.dir>../logs</log.dir>
+				<log.dir>/home/appusr/tomcat8080/logs</log.dir>
 				<url.lottery>http://192.168.0.42:8080/lottery</url.lottery>
+				<url.dataanalysis>http://192.168.0.42/dataanalysis</url.dataanalysis>
 				<waittime.F47102>60000</waittime.F47102>
 				<waittime.F47103>60000</waittime.F47103>
 				<waittime.F47104>60000</waittime.F47104>
@@ -481,18 +494,20 @@
 				<quartz.daPanNotice><![CDATA[0 */1 9-23 * * ?]]></quartz.daPanNotice>
 				<quartz.guanyajunMatch><![CDATA[0 */3 * * * ?]]></quartz.guanyajunMatch>
 				<quartz.jingcaipeilv><![CDATA[0 */2 * * * ?]]></quartz.jingcaipeilv>
-				<quartz.footballletpoint><![CDATA[0 */2 * * * ?]]></quartz.footballletpoint>
-				<quartz.basketballletpoint><![CDATA[0 */2 * * * ?]]></quartz.basketballletpoint>
 				<quartz.jingcaiduizhen><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcaiduizhen>
 				<quartz.jingcairesult><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcairesult>
+				<quartz.jingcaiannouncement><![CDATA[0 */5 * * * ?]]></quartz.jingcaiannouncement>
+				<quartz.footballletpoint><![CDATA[0 */2 * * * ?]]></quartz.footballletpoint>
+				<quartz.basketballletpoint><![CDATA[0 */2 * * * ?]]></quartz.basketballletpoint>
 				<quartz.beidanduizhen><![CDATA[0 */2 8-22 * * ?]]></quartz.beidanduizhen>
 				<quartz.beidanpeilv><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanpeilv>
 				<quartz.beidanresult><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanresult>
+				<quartz.beidanannouncement><![CDATA[0 */1 * * * ?]]></quartz.beidanannouncement>
 				<twodatabase.url>jdbc:mysql://192.168.0.92:3306/news</twodatabase.url>
 				<twodatabase.driverClassName>com.mysql.jdbc.Driver</twodatabase.driverClassName>
 				<twodatabase.username>jrtConsole</twodatabase.username>
 				<twodatabase.password>jrtConsole</twodatabase.password>
-				<sendsmsurl>http://192.168.0.118/msgcenter/sms/send</sendsmsurl>
+				<sendsmsurl>http://192.168.0.118:8000/msgcenter/sms/send</sendsmsurl>
 				<sendsmsmobiles></sendsmsmobiles>
 				<jingcai.audit>true</jingcai.audit>
 				<jingcai.duizhenaudit>true</jingcai.duizhenaudit>
@@ -516,10 +531,12 @@
 				<database.testOnBorrow>true</database.testOnBorrow>
 				<tomcat.manager.url>http://192.168.99.2:8088/manager</tomcat.manager.url>
 				<tomcat.manager.port>8088</tomcat.manager.port>
-				<activemq.brokerURL>failover://(tcp://192.168.99.30:61616,tcp://192.168.99.31:61616)?randomize=false</activemq.brokerURL>
+				<activemq.lottery.brokerURL>failover://(tcp://192.168.99.30:61616,tcp://192.168.99.31:61616)?randomize=false</activemq.lottery.brokerURL>
+				<activemq.lotserver.brokerURL>failover://(tcp://192.168.99.16:61616,tcp://192.168.99.17:61616)?randomize=false</activemq.lotserver.brokerURL>
 				<logback.appender>prizeCrawlerLog</logback.appender>
 				<log.dir>/opt/logs</log.dir>
 				<url.lottery>http://192.168.99.6/lottery</url.lottery>
+				<url.dataanalysis>http://192.168.99.121:80/dataanalysis</url.dataanalysis>
 				<waittime.F47102>5700000</waittime.F47102>
 				<waittime.F47103>2400000</waittime.F47103>
 				<waittime.F47104>6300000</waittime.F47104>
@@ -534,18 +551,23 @@
 				<quartz.daPanNotice><![CDATA[*/30 * * * * ?]]></quartz.daPanNotice>
 				<quartz.guanyajunMatch><![CDATA[0 */3 * * * ?]]></quartz.guanyajunMatch>
 				<quartz.jingcaipeilv><![CDATA[0 */2 * * * ?]]></quartz.jingcaipeilv>
+				<quartz.jingcaiduizhen><![CDATA[0 */3 * * * ?]]></quartz.jingcaiduizhen>
+				<quartz.jingcairesult><![CDATA[0 */3 * * * ?]]></quartz.jingcairesult>
+				<quartz.jingcaiannouncement><![CDATA[0 */5 * * * ?]]></quartz.jingcaiannouncement>
 				<quartz.footballletpoint><![CDATA[0 */2 * * * ?]]></quartz.footballletpoint>
 				<quartz.basketballletpoint><![CDATA[0 */2 * * * ?]]></quartz.basketballletpoint>
-				<quartz.jingcaiduizhen><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcaiduizhen>
-				<quartz.jingcairesult><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcairesult>
+				<quartz.beidanduizhen><![CDATA[0 */3 0-23 * * ?]]></quartz.beidanduizhen>
+				<quartz.beidanpeilv><![CDATA[0 */2 0-23 * * ?]]></quartz.beidanpeilv>
+				<quartz.beidanresult><![CDATA[0 */3 0-23 * * ?]]></quartz.beidanresult>
+				<quartz.beidanannouncement><![CDATA[0 */5 * * * ?]]></quartz.beidanannouncement>
 				<twodatabase.url>jdbc:mysql://192.168.99.120:3306/news</twodatabase.url>
 				<twodatabase.driverClassName>com.mysql.jdbc.Driver</twodatabase.driverClassName>
 				<twodatabase.username>jrtConsole</twodatabase.username>
 				<twodatabase.password>jrtConsole</twodatabase.password>
 				<sendsmsurl>http://192.168.99.6/msgcenter/sms/send</sendsmsurl>
-				<sendsmsmobiles>15811212096,15110194167</sendsmsmobiles>
+				<sendsmsmobiles>15811212096,15110194167,13716456980</sendsmsmobiles>
 				<jingcai.audit>false</jingcai.audit>
-				<jingcai.duizhenaudit>false</jingcai.duizhenaudit>
+				<jingcai.duizhenaudit>true</jingcai.duizhenaudit>
 				<mail.station>beijing</mail.station>
 				<msg.station>beijing</msg.station>
 			</properties>
@@ -568,10 +590,12 @@
 				<database.testOnBorrow>true</database.testOnBorrow>
 				<tomcat.manager.url>http://192.168.150.77:8080/manager</tomcat.manager.url>
 				<tomcat.manager.port>8080</tomcat.manager.port>
-				<activemq.brokerURL>failover://(tcp://192.168.150.100:61616,tcp://192.168.150.102:61616)?randomize=false</activemq.brokerURL>
+				<activemq.lottery.brokerURL>failover://(tcp://192.168.150.100:61616,tcp://192.168.150.102:61616)?randomize=false</activemq.lottery.brokerURL>
+				<activemq.lotserver.brokerURL>failover://(tcp://192.168.150.100:61616,tcp://192.168.150.102:61616)?randomize=false</activemq.lotserver.brokerURL>
 				<logback.appender>prizeCrawlerLog</logback.appender>
 				<log.dir>/home/appusr/apache-tomcat-6.0.32/logs</log.dir>
 				<url.lottery>http://192.168.150.120/lottery</url.lottery>
+				<url.dataanalysis></url.dataanalysis>
 				<waittime.F47102>5700000</waittime.F47102>
 				<waittime.F47103>2400000</waittime.F47103>
 				<waittime.F47104>6300000</waittime.F47104>
@@ -586,17 +610,22 @@
 				<quartz.daPanNotice><![CDATA[0 */1 * * * ?]]></quartz.daPanNotice>
 				<quartz.guanyajunMatch><![CDATA[0 */3 * * * ?]]></quartz.guanyajunMatch>
 				<quartz.jingcaipeilv><![CDATA[0 */2 * * * ?]]></quartz.jingcaipeilv>
+				<quartz.jingcaiduizhen><![CDATA[0 */3 * * * ?]]></quartz.jingcaiduizhen>
+				<quartz.jingcairesult><![CDATA[0 */3 * * * ?]]></quartz.jingcairesult>
+				<quartz.jingcaiannouncement><![CDATA[0 */5 * * * ?]]></quartz.jingcaiannouncement>
 				<quartz.footballletpoint><![CDATA[0 */2 * * * ?]]></quartz.footballletpoint>
 				<quartz.basketballletpoint><![CDATA[0 */2 * * * ?]]></quartz.basketballletpoint>
-				<quartz.jingcaiduizhen><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcaiduizhen>
-				<quartz.jingcairesult><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcairesult>
+				<quartz.beidanduizhen><![CDATA[0 */2 8-22 * * ?]]></quartz.beidanduizhen>
+				<quartz.beidanpeilv><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanpeilv>
+				<quartz.beidanresult><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanresult>
+				<quartz.beidanannouncement><![CDATA[0 */5 * * * ?]]></quartz.beidanannouncement>
 				<twodatabase.url>jdbc:mysql://192.168.150.4:3306/news</twodatabase.url>
 				<twodatabase.driverClassName>com.mysql.jdbc.Driver</twodatabase.driverClassName>
 				<twodatabase.username>jrtConsole</twodatabase.username>
 				<twodatabase.password>jrtConsole</twodatabase.password>
 				<jingcai.beforemin>2</jingcai.beforemin>
-				<sendsmsurl>http://192.168.99.6/msgcenter/sms/send</sendsmsurl>
-				<sendsmsmobiles>15811212096,15110194167</sendsmsmobiles>
+				<sendsmsurl>http://192.168.190.3/msgcenter/sms/send</sendsmsurl>
+				<sendsmsmobiles>15811212096,13522407813</sendsmsmobiles>
 				<jingcai.audit>false</jingcai.audit>
 				<jingcai.duizhenaudit>true</jingcai.duizhenaudit>
 				<mail.station>dakehu</mail.station>
@@ -605,48 +634,7 @@
 			</properties>
 		</profile>
 
-		<profile>
-			<id>133</id>
-			<properties>
-				<database.url>jdbc:mysql://192.168.0.133:3306/prizeCrawler?characterEncoding=utf-8</database.url>
-				<database.driverClassName>com.mysql.jdbc.Driver</database.driverClassName>
-				<database.username>root</database.username>
-				<database.password>123456</database.password>
-				<tomcat.manager.url>http://192.168.0.131:8888/manager</tomcat.manager.url>
-				<tomcat.manager.port>8888</tomcat.manager.port>
-				<activemq.brokerURL>failover://(tcp://192.168.0.91:61616,tcp://192.168.0.133:61616)?randomize=false</activemq.brokerURL>
-				<logback.appender>prizeCrawlerLog</logback.appender>
-				<log.dir>/root/apache-tomcat-6.0.35/logs</log.dir>
-				<url.lottery>http://192.168.0.91:8080/lottery</url.lottery>
-				<waittime.F47102>60000</waittime.F47102>
-				<waittime.F47103>60000</waittime.F47103>
-				<waittime.F47104>60000</waittime.F47104>
-				<waittime.T01001>60000</waittime.T01001>
-				<waittime.T01002>60000</waittime.T01002>
-				<waittime.T01011>60000</waittime.T01011>
-				<waittime.T01009>60000</waittime.T01009>
-				<waittime.T01013>60000</waittime.T01013>
-				<quartz.fastOpenCrawl><![CDATA[*/25 * 0-3,9-23 * * ?]]></quartz.fastOpenCrawl>
-				<quartz.fastOpenNotice><![CDATA[*/50 * 0-3,9-23 * * ?]]></quartz.fastOpenNotice>
-				<quartz.daPanCrawl><![CDATA[0 */1 * * * ?]]></quartz.daPanCrawl>
-				<quartz.daPanNotice><![CDATA[0 */1 * * * ?]]></quartz.daPanNotice>
-				<quartz.guanyajunMatch><![CDATA[0 */3 * * * ?]]></quartz.guanyajunMatch>
-				<quartz.jingcaipeilv><![CDATA[0 */2 * * * ?]]></quartz.jingcaipeilv>
-				<quartz.footballletpoint><![CDATA[0 */2 * * * ?]]></quartz.footballletpoint>
-				<quartz.basketballletpoint><![CDATA[0 */2 * * * ?]]></quartz.basketballletpoint>
-				<quartz.jingcaiduizhen><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcaiduizhen>
-				<quartz.jingcairesult><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcairesult>
-				<twodatabase.url>jdbc:mysql://192.168.0.133:3306/news</twodatabase.url>
-				<twodatabase.driverClassName>com.mysql.jdbc.Driver</twodatabase.driverClassName>
-				<twodatabase.username>root</twodatabase.username>
-				<twodatabase.password>123456</twodatabase.password>
-				<sendsmsurl>http://192.168.0.118/msgcenter/sms/send</sendsmsurl>
-				<sendsmsmobiles></sendsmsmobiles>
-				<jingcai.audit>true</jingcai.audit>
-				<jingcai.duizhenaudit>true</jingcai.duizhenaudit>
-				<msg.station>ceshi</msg.station>
-			</properties>
-		</profile>
+		
 
 		<profile>
 			<id>105</id>
@@ -657,10 +645,12 @@
 				<database.password>jrtConsole</database.password>
 				<tomcat.manager.url>http://192.168.150.105:8888/manager</tomcat.manager.url>
 				<tomcat.manager.port>8888</tomcat.manager.port>
-				<activemq.brokerURL>tcp://192.168.150.105:61616</activemq.brokerURL>
+				<activemq.lottery.brokerURL>tcp://192.168.150.105:61616</activemq.lottery.brokerURL>
+				<activemq.lotserver.brokerURL>tcp://192.168.150.105:61616</activemq.lotserver.brokerURL>
 				<logback.appender>prizeCrawlerLog</logback.appender>
 				<log.dir>/home/appusr/testweb/tomcatprize/apache-tomcat-6.0.35/logs</log.dir>
 				<url.lottery>http://192.168.150.105:8080/lottery</url.lottery>
+				<url.dataanalysis></url.dataanalysis>
 				<waittime.F47102>60000</waittime.F47102>
 				<waittime.F47103>60000</waittime.F47103>
 				<waittime.F47104>60000</waittime.F47104>
@@ -675,15 +665,124 @@
 				<quartz.daPanNotice><![CDATA[0 */1 * * * ?]]></quartz.daPanNotice>
 				<quartz.guanyajunMatch><![CDATA[0 */3 * * * ?]]></quartz.guanyajunMatch>
 				<quartz.jingcaipeilv><![CDATA[0 */2 * * * ?]]></quartz.jingcaipeilv>
-				<quartz.footballletpoint><![CDATA[0 */2 * * * ?]]></quartz.footballletpoint>
-				<quartz.basketballletpoint><![CDATA[0 */2 * * * ?]]></quartz.basketballletpoint>
 				<quartz.jingcaiduizhen><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcaiduizhen>
 				<quartz.jingcairesult><![CDATA[0 */3 8-22 * * ?]]></quartz.jingcairesult>
+				<quartz.jingcaiannouncement><![CDATA[0 */5 * * * ?]]></quartz.jingcaiannouncement>
+				<quartz.footballletpoint><![CDATA[0 */2 * * * ?]]></quartz.footballletpoint>
+				<quartz.basketballletpoint><![CDATA[0 */2 * * * ?]]></quartz.basketballletpoint>
+				<quartz.beidanduizhen><![CDATA[0 */2 8-22 * * ?]]></quartz.beidanduizhen>
+				<quartz.beidanpeilv><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanpeilv>
+				<quartz.beidanresult><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanresult>
+				<quartz.beidanannouncement><![CDATA[0 */5 * * * ?]]></quartz.beidanannouncement>
 				<twodatabase.url>jdbc:mysql://192.168.150.105:3306/news</twodatabase.url>
 				<twodatabase.driverClassName>com.mysql.jdbc.Driver</twodatabase.driverClassName>
 				<twodatabase.username>jrtConsole</twodatabase.username>
 				<twodatabase.password>jrtConsole</twodatabase.password>
 				<sendsmsurl>http://192.168.0.118/msgcenter/sms/send</sendsmsurl>
+				<sendsmsmobiles></sendsmsmobiles>
+				<jingcai.audit>true</jingcai.audit>
+				<jingcai.duizhenaudit>true</jingcai.duizhenaudit>
+				<msg.station>ceshi</msg.station>
+			</properties>
+		</profile>
+		
+		<profile>
+			<id>product</id>
+			<properties>
+				<database.url>jdbc:mysql://192.168.190.105:3306/prizeCrawler?characterEncoding=utf-8</database.url>
+				<database.driverClassName>com.mysql.jdbc.Driver</database.driverClassName>
+				<database.username>jrtConsole</database.username>
+				<database.password>jrtConsole</database.password>
+				<database.removeAbandoned>true</database.removeAbandoned>
+				<database.removeAbandonedTimeout>60</database.removeAbandonedTimeout>
+				<database.logAbandoned>true</database.logAbandoned>
+				<database.validationQuery>select 1 from dual</database.validationQuery>
+				<database.testOnBorrow>true</database.testOnBorrow>
+				<tomcat.manager.url>http://192.168.190.100:9999/manager</tomcat.manager.url>
+				<tomcat.manager.port>9999</tomcat.manager.port>
+				<activemq.lottery.brokerURL>failover://(tcp://192.168.190.100:61616,tcp://192.168.190.101:61616)?randomize=false</activemq.lottery.brokerURL>
+				<activemq.lotserver.brokerURL>failover://(tcp://192.168.190.100:61616,tcp://192.168.190.101:61616)?randomize=false</activemq.lotserver.brokerURL>
+				<logback.appender>prizeCrawlerLog</logback.appender>
+				<log.dir>/home/appusr/logs</log.dir>
+				<url.lottery>http://192.168.190.2/lottery</url.lottery>
+				<url.dataanalysis></url.dataanalysis>
+				<waittime.F47102>5700000</waittime.F47102>
+				<waittime.F47103>2400000</waittime.F47103>
+				<waittime.F47104>6300000</waittime.F47104>
+				<waittime.T01001>2400000</waittime.T01001>
+				<waittime.T01002>2100000</waittime.T01002>
+				<waittime.T01011>2100000</waittime.T01011>
+				<waittime.T01009>2400000</waittime.T01009>
+				<waittime.T01013>2040000</waittime.T01013>
+				<quartz.fastOpenCrawl><![CDATA[*/15 * 0-3,9-23 * * ?]]></quartz.fastOpenCrawl>
+				<quartz.fastOpenNotice><![CDATA[*/20 * 0-3,9-23 * * ?]]></quartz.fastOpenNotice>
+				<quartz.daPanCrawl><![CDATA[0 */1 0-2,20-23 * * ?]]></quartz.daPanCrawl>
+				<quartz.daPanNotice><![CDATA[*/30 * 0-2,20-23 * * ?]]></quartz.daPanNotice>
+				<quartz.guanyajunMatch><![CDATA[0 */3 * * * ?]]></quartz.guanyajunMatch>
+				<quartz.jingcaipeilv><![CDATA[0 */2 * * * ?]]></quartz.jingcaipeilv>
+				<quartz.jingcaiduizhen><![CDATA[0 */3 * * * ?]]></quartz.jingcaiduizhen>
+				<quartz.jingcairesult><![CDATA[0 */3 * * * ?]]></quartz.jingcairesult>
+				<quartz.jingcaiannouncement><![CDATA[0 */5 * * * ?]]></quartz.jingcaiannouncement>
+				<quartz.footballletpoint><![CDATA[0 */2 * * * ?]]></quartz.footballletpoint>
+				<quartz.basketballletpoint><![CDATA[0 */2 * * * ?]]></quartz.basketballletpoint>
+				<quartz.beidanduizhen><![CDATA[0 */2 8-22 * * ?]]></quartz.beidanduizhen>
+				<quartz.beidanresult><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanresult>
+				<quartz.beidanpeilv><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanpeilv>
+				<twodatabase.url>jdbc:mysql://192.168.190.105:3306/news</twodatabase.url>
+				<quartz.beidanannouncement><![CDATA[0 */5 * * * ?]]></quartz.beidanannouncement>
+				<twodatabase.driverClassName>com.mysql.jdbc.Driver</twodatabase.driverClassName>
+				<twodatabase.username>jrtConsole</twodatabase.username>
+				<twodatabase.password>jrtConsole</twodatabase.password>
+				<sendsmsurl>http://192.168.190.3/msgcenter/sms/send</sendsmsurl>
+				<sendsmsmobiles>15811212096,13522407813</sendsmsmobiles>
+				<jingcai.audit>false</jingcai.audit>
+				<jingcai.duizhenaudit>true</jingcai.duizhenaudit>
+				<mail.station>lx_bj</mail.station>
+				<msg.station>lx_bj</msg.station>
+			</properties>
+		</profile>
+		
+		<profile>
+			<id>test</id>
+			<properties>
+				<database.url>jdbc:mysql://192.168.15.10:3306/prizeCrawler?characterEncoding=utf-8</database.url>
+				<database.driverClassName>com.mysql.jdbc.Driver</database.driverClassName>
+				<database.username>jrtConsole</database.username>
+				<database.password>jrtConsole</database.password>
+				<activemq.lottery.brokerURL>tcp://192.168.15.15:61616</activemq.lottery.brokerURL>
+				<activemq.lotserver.brokerURL>tcp://192.168.15.15:61616</activemq.lotserver.brokerURL>
+				<logback.appender>prizeCrawlerLog</logback.appender>
+				<log.dir>/home/appusr/tomcat8080/logs</log.dir>
+				<url.lottery>http://192.168.15.15:8888/lottery</url.lottery>
+				<url.dataanalysis></url.dataanalysis>
+				<waittime.F47102>60000</waittime.F47102>
+				<waittime.F47103>60000</waittime.F47103>
+				<waittime.F47104>60000</waittime.F47104>
+				<waittime.T01001>60000</waittime.T01001>
+				<waittime.T01002>60000</waittime.T01002>
+				<waittime.T01011>60000</waittime.T01011>
+				<waittime.T01009>60000</waittime.T01009>
+				<waittime.T01013>60000</waittime.T01013>
+				<quartz.fastOpenCrawl><![CDATA[*/25 * 0-3,9-23 * * ?]]></quartz.fastOpenCrawl>
+				<quartz.fastOpenNotice><![CDATA[*/50 * 0-3,9-23 * * ?]]></quartz.fastOpenNotice>
+				<quartz.daPanCrawl><![CDATA[0 */1 9-23 * * ?]]></quartz.daPanCrawl>
+				<quartz.daPanNotice><![CDATA[0 */1 9-23 * * ?]]></quartz.daPanNotice>
+				<quartz.guanyajunMatch><![CDATA[0 */3 * * * ?]]></quartz.guanyajunMatch>
+				<quartz.jingcaipeilv><![CDATA[0 */2 * * * ?]]></quartz.jingcaipeilv>
+				<quartz.jingcaiduizhen><![CDATA[0 */3 * * * ?]]></quartz.jingcaiduizhen>
+				<quartz.jingcairesult><![CDATA[0 */3 * * * ?]]></quartz.jingcairesult>
+				<quartz.jingcaiannouncement><![CDATA[0 */5 * * * ?]]></quartz.jingcaiannouncement>
+				<quartz.footballletpoint><![CDATA[0 */2 * * * ?]]></quartz.footballletpoint>
+				<quartz.basketballletpoint><![CDATA[0 */2 * * * ?]]></quartz.basketballletpoint>
+				<twodatabase.url>jdbc:mysql://192.168.15.10:3306/news</twodatabase.url>
+				<quartz.beidanduizhen><![CDATA[0 */2 8-22 * * ?]]></quartz.beidanduizhen>
+				<quartz.beidanpeilv><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanpeilv>
+				<quartz.beidanresult><![CDATA[0 */1 8-22 * * ?]]></quartz.beidanresult>
+				<quartz.beidanannouncement><![CDATA[0 */1 * * * ?]]></quartz.beidanannouncement>
+				<twodatabase.driverClassName>com.mysql.jdbc.Driver</twodatabase.driverClassName>
+				<twodatabase.username>jrtConsole</twodatabase.username>
+				<twodatabase.password>jrtConsole</twodatabase.password>
+				<sendsmsurl>http://192.168.15.15:7777/msgcenter/sms/send</sendsmsurl>
 				<sendsmsmobiles></sendsmsmobiles>
 				<jingcai.audit>true</jingcai.audit>
 				<jingcai.duizhenaudit>true</jingcai.duizhenaudit>

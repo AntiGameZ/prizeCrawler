@@ -2,7 +2,6 @@ package com.ruyicai.prizecrawler.listener;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Resource;
 import javax.jms.Message;
@@ -68,10 +67,12 @@ public class AgencyDrawLotteryListener implements MessageListener{
 			logger.debug("winspecialcode:"+winspecialcode);
 			String info = map.get("info")==null?"":map.get("info").toString();
 			logger.debug("info:"+info);
+			String variable = map.get("variable")==null?"":map.get("variable").toString();
+			logger.debug("variable:"+variable);
 			String wincode = "";
 			
 			logger.info("agencyDrawLottery lotno="+lotno+" batchcode="+batchcode+" agencyno="+agencyno+" winbasecode="+winbasecode
-					+" winspecialcode="+winspecialcode+" info="+info);
+					+" winspecialcode="+winspecialcode+" info="+info+" variable="+variable);
 			
 			
 			if(lottypes.get(lotno)!=null) {
@@ -132,7 +133,7 @@ public class AgencyDrawLotteryListener implements MessageListener{
 					noticecode = false;
 					noticeinfo = false;
 					logger.info("开始通知第"+(total+1)+"次");
-					noticecode = HttpTookit.noticeCode(lotno, batchcode, winbasecode, winspecialcode);
+					noticecode = HttpTookit.noticeCode(lotno, batchcode, winbasecode, winspecialcode,variable);
 					logger.info("通知开奖号码结果为"+noticecode);
 					noticeinfo = HttpTookit.noticeInfo(lotno, batchcode, info);
 					logger.info("通知开奖详情结果为"+noticeinfo);

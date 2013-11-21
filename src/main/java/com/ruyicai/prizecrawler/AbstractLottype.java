@@ -1,10 +1,16 @@
 package com.ruyicai.prizecrawler;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.ruyicai.prizecrawler.domain.AgencyPrizeCode;
 import com.ruyicai.prizecrawler.domain.PrizeInfo;
+import com.ruyicai.prizecrawler.service.SendEmailService;
 
 public abstract class AbstractLottype implements Lottype {
-
+	
+	@Autowired
+	protected SendEmailService configService;
+	
 	@Override
 	public void crawl(PrizeInfo prizeInfo) {
 

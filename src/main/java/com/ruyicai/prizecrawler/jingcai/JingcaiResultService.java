@@ -129,16 +129,14 @@ public class JingcaiResultService {
 		try {
 			List<Tjingcaimatches> tjingcaimatches = tjingcaiDao.findByStateAndType(JingcaiState.END.value, BigDecimal.ZERO);
 			if(!tjingcaimatches.isEmpty()) {
-				if(!tjingcaimatches.isEmpty()) {
-					String start_date = getPreDate(daycount);
-					String end_date = getPreDate(0);
-					for(int i = 1; i <= page; i ++) {
-						String url = BASKETBALL_URL + "?start_date=" + start_date + "&end_date=" + end_date + "&page=" + i;
-						try {
-							getBasketballResult(url);
-						} catch(Exception e) {
-							logger.error("getBasketballResult出错, url:" + url, e);
-						}
+				String start_date = getPreDate(daycount);
+				String end_date = getPreDate(0);
+				for(int i = 1; i <= page; i ++) {
+					String url = BASKETBALL_URL + "?start_date=" + start_date + "&end_date=" + end_date + "&page=" + i;
+					try {
+						getBasketballResult(url);
+					} catch(Exception e) {
+						logger.error("getBasketballResult出错, url:" + url, e);
 					}
 				}
 			}
@@ -204,6 +202,8 @@ public class JingcaiResultService {
 	private void saveBasketballResult(BigDecimal type, List<Element> tds,
 			String tr, Map<String, TjingcaiResult> map) {
 		try {
+			String openday = trim(tds.get(0).text());
+			long opendayL = Long.parseLong(openday.replaceAll("\\-", ""));
 			String event = trim(tds.get(1).text());
 			String league = trim(tds.get(2).text());
 			String team = trim(tds.get(3).text()).replaceAll("\\s*VS\\s*", ":");
@@ -212,7 +212,7 @@ public class JingcaiResultService {
 			BigDecimal weekid = WEEKID.get(event.substring(0, 2));
 			String teamid = event.substring(2);
 			Tjingcaimatches tjingcaimatches = tjingcaiDao.findTjingcaimatches(type, weekid, teamid, league, team);
-			if(null == tjingcaimatches) {
+			if(null == tjingcaimatches || opendayL < Long.parseLong(tjingcaimatches.getDay())) {
 				return;
 			}
 			String id = StringUtil.join("_", String.valueOf(type.intValue()), tjingcaimatches.getDay(), String.valueOf(weekid.intValue()), teamid);
@@ -312,6 +312,8 @@ public class JingcaiResultService {
 
 	private void saveFootballResult(BigDecimal type, List<Element> tds, String tr, Map<String, TjingcaiResult> map) {
 		try {
+			String openday = trim(tds.get(0).text());
+			long opendayL = Long.parseLong(openday.replaceAll("\\-", ""));
 			String event = trim(tds.get(1).text());
 			String league = trim(tds.get(2).text());
 			String team = trim(tds.get(3).text()).replaceAll("\\s*VS\\s*", ":");
@@ -319,7 +321,7 @@ public class JingcaiResultService {
 			BigDecimal weekid = WEEKID.get(event.substring(0, 2));
 			String teamid = event.substring(2);
 			Tjingcaimatches tjingcaimatches = tjingcaiDao.findTjingcaimatches(type, weekid, teamid, league, team);
-			if(null == tjingcaimatches) {
+			if(null == tjingcaimatches || opendayL < Long.parseLong(tjingcaimatches.getDay())) {
 				return;
 			}
 			String id = StringUtil.join("_", String.valueOf(type.intValue()), tjingcaimatches.getDay(), String.valueOf(weekid.intValue()), teamid);
@@ -344,21 +346,23 @@ public class JingcaiResultService {
 	private void saveFootballResult(String id, String firsthalfresult,
 			String result, String url, Map<String, TjingcaiResult> map) throws Exception {
 		Document doc = Jsoup.connect(PREFIX_FOOTBALL_URL + url).timeout(30000).get();
-		Element element = doc.select(".pop_date").first();
+		Element element = doc.select("table").first();
 		List<Element> trs = element.select("tr");
-		List<Element> tds = trs.get(2).select("td");
+		List<Element> tds = trs.get(3).select("td");
 		String letpoint = trim(tds.get(1).text());
 		letpoint = letpoint.replaceAll("\\(*\\)*", "");
 		if("无让球".equals(letpoint)) {
 			letpoint = "0";
 		}
-		String b0 = trim(tds.get(3).text());
-		String b1 = "", b2 = "", b3 = "";
-		tds = trs.get(3).select("td");
-		String b4 = StringUtil.isEmpty(trim(tds.get(3).text())) ? "0" : tds.get(3).text().trim();
+		String b1 = trim(tds.get(3).text());
+		String b2 = "", b3 = "";
 		tds = trs.get(4).select("td");
-		String b5 = trim(tds.get(3).text());
+		String b0 = trim(tds.get(3).text());
 		tds = trs.get(5).select("td");
+		String b4 = StringUtil.isEmpty(trim(tds.get(3).text())) ? "0" : trim(tds.get(3).text());
+		tds = trs.get(6).select("td");
+		String b5 = trim(tds.get(3).text());
+		tds = trs.get(7).select("td");
 		String b6 = trim(tds.get(3).text());
 		if(!StringUtil.isEmpty(transferNotwin(b0)) && !StringUtil.isEmpty(transferNotwin(b4)) && !StringUtil.isEmpty(transferNotwin(b5)) && !StringUtil.isEmpty(transferNotwin(b6))) {
 			map.put(id, buildResult(id, letpoint, "", result, firsthalfresult, transferNotwin(b0), transferNotwin(b1), transferNotwin(b2), transferNotwin(b3), transferNotwin(b4), transferNotwin(b5), transferNotwin(b6), BigDecimal.ZERO));

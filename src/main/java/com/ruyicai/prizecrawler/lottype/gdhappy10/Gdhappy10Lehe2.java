@@ -33,7 +33,7 @@ public class Gdhappy10Lehe2 {
 			Document doc = Jsoup.connect(URL).userAgent(SystemCode.UA_IE9)
 					.timeout(4000).get();
 			Elements scripts = doc.select("script");
-			Element script = scripts.get(15);
+			Element script = scripts.get(16);
 			Map<String,String> opencodeMap = convertOpencodes(script.toString());
 			
 			if(opencodeMap.containsKey(batchcode)) {
@@ -94,7 +94,7 @@ public class Gdhappy10Lehe2 {
 
 	public static void main(String[] args) {
 		System.out.println(new Gdhappy10Lehe2()
-				.carwlFromHappy10Lehe("2012112105"));
+				.carwlFromHappy10Lehe("2013060619"));
 	}
 
 }

@@ -13,6 +13,7 @@ public class EmailNotice {
 	private int ismail;
 	private int crawltimes;
 	private int noticetimes;
+	private int iscrawl;
 	public String getLotno() {
 		return lotno;
 	}
@@ -37,5 +38,12 @@ public class EmailNotice {
 	public void setNoticetimes(int noticetimes) {
 		this.noticetimes = noticetimes;
 	}
+	public int getIscrawl() {
+		return iscrawl;
+	}
+	public void setIscrawl(int iscrawl) {
+		this.iscrawl = iscrawl;
+	}
+	
 	
 }

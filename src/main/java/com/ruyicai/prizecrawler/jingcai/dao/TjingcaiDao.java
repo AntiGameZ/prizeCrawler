@@ -23,6 +23,7 @@ import com.ruyicai.prizecrawler.consts.JingcaiState;
 import com.ruyicai.prizecrawler.domain.TJingcaiParam;
 import com.ruyicai.prizecrawler.domain.TjingcaiGYJMatch;
 import com.ruyicai.prizecrawler.domain.TjingcaiResult;
+import com.ruyicai.prizecrawler.domain.TjingcaiScore;
 import com.ruyicai.prizecrawler.domain.Tjingcaimatches;
 
 @Service
@@ -96,6 +97,29 @@ public class TjingcaiDao {
 		}
 		return 0;
 	}
+	
+	
+	public int updateTeamShortname(BigDecimal type, String day, BigDecimal weekid,
+			String teamid,String teamshortname) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		try {
+			conn = getConnection();
+			pstmt = conn
+					.prepareStatement("update Tjingcaimatches t set t.teamshortname=? where t.type=? and t.day=? and t.weekid=? and t.teamid=?");
+			pstmt.setObject(1, teamshortname);
+			pstmt.setObject(2, type);
+			pstmt.setObject(3, day);
+			pstmt.setObject(4, weekid);
+			pstmt.setObject(5, teamid);
+			return pstmt.executeUpdate();
+		} catch (Exception e) {
+			logger.error("竞彩updateTeamShortname出错", e);
+		} finally {
+			close(conn, pstmt, null);
+		}
+		return 0;
+	}
 
 	public int updateEndtime(BigDecimal type, String day, BigDecimal weekid,
 			String teamid, Date endtime) {
@@ -120,18 +144,19 @@ public class TjingcaiDao {
 	}
 
 	public int updateTime(BigDecimal type, String day, BigDecimal weekid,
-			String teamid, Date time) {
+			String teamid, Date time, Date endtime) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
 			conn = getConnection();
 			pstmt = conn
-					.prepareStatement("update Tjingcaimatches t set t.time=? where t.type=? and t.day=? and t.weekid=? and t.teamid=? and (t.audit is null or t.audit = 0)");
+					.prepareStatement("update Tjingcaimatches t set t.time=?, t.endtime=? where t.type=? and t.day=? and t.weekid=? and t.teamid=?");
 			pstmt.setObject(1, time);
-			pstmt.setObject(2, type);
-			pstmt.setObject(3, day);
-			pstmt.setObject(4, weekid);
-			pstmt.setObject(5, teamid);
+			pstmt.setObject(2, endtime);
+			pstmt.setObject(3, type);
+			pstmt.setObject(4, day);
+			pstmt.setObject(5, weekid);
+			pstmt.setObject(6, teamid);
 			return pstmt.executeUpdate();
 		} catch (Exception e) {
 			logger.error("竞彩updateTime出错", e);
@@ -443,6 +468,7 @@ public class TjingcaiDao {
 		tjingcaimatches.setAudit(rs.getBigDecimal("audit"));
 		tjingcaimatches.setShortname(rs.getString("shortname"));
 		tjingcaimatches.setLetpoint(rs.getString("letpoint"));
+		tjingcaimatches.setTeamshortname(rs.getString("teamshortname"));
 		return tjingcaimatches;
 	}
 	
@@ -497,6 +523,45 @@ public class TjingcaiDao {
 			close(conn, pstmt, rs);
 		}
 		return tjingcaimatches;
+	}
+	
+	public int findAnnouncement(String id) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+			conn = getConnection();
+			pstmt = conn
+					.prepareStatement("select count(*) from Announcement t where t.id=?");
+			pstmt.setObject(1, id);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return rs.getInt(1);
+			}
+		} catch (Exception e) {
+			logger.error("竞彩findAnnouncement出错", e);
+		} finally {
+			close(conn, pstmt, rs);
+		}
+		return 0;
+	}
+	
+	public int persistAnnouncement(String id, String content) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		try {
+			conn = getConnection();
+			pstmt = conn
+					.prepareStatement("insert into Announcement(id, content) values(?,?)");
+			pstmt.setObject(1, id);
+			pstmt.setObject(2, content);
+			return pstmt.executeUpdate();
+		} catch (Exception e) {
+			logger.error("竞彩persistAnnouncement出错", e);
+		} finally {
+			close(conn, pstmt, null);
+		}
+		return 0;
 	}
 
 	public Tjingcaimatches findTjingcaimatches(BigDecimal type, String day,
@@ -815,5 +880,65 @@ public class TjingcaiDao {
 		} finally {
 			close(conn, pstmt, null);
 		}
+	}
+	
+	public TjingcaiScore findTjingcaiScore(String id) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		TjingcaiScore score = null;
+		try {
+			conn = getConnection();
+			pstmt = conn.prepareStatement("select * from tjingcaiscore t where t.id=?");
+			pstmt.setObject(1, id);
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				score = buildTjingcaiScore(rs);
+			}
+		}catch(Exception e) {
+			logger.info("findTjingcaiScore出错",e);
+		}finally {
+			close(conn, pstmt, rs);
+		}
+		return score;
+	}
+	
+	public int persist(TjingcaiScore score) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		try {
+			conn = getConnection();
+			pstmt = conn
+					.prepareStatement("INSERT INTO tjingcaiscore(id,cancel,result,firsthalfresult,createtime,audittime,auditname,audit) VALUES (?,?,?,?,?,?,?,?)");
+			pstmt.setObject(1, score.getId());
+			pstmt.setObject(2, score.getCancel());
+			pstmt.setObject(3, score.getResult());
+			pstmt.setObject(4, score.getFirsthalfresult());
+			pstmt.setObject(5, score.getCreatetime());
+			pstmt.setObject(6, score.getAudittime());
+			pstmt.setObject(7, score.getAuditname());
+			pstmt.setObject(8, score.getAudit());
+			return pstmt.executeUpdate();
+		} catch (Exception e) {
+			logger.error("竞彩persist TjingcaiScore出错", e);
+		} finally {
+			close(conn, pstmt, null);
+		}
+		return 0;
+	}
+	
+	
+	private TjingcaiScore buildTjingcaiScore(ResultSet rs) throws Exception {
+		TjingcaiScore score = new TjingcaiScore();
+		score.setId(rs.getString("id"));
+		score.setCancel(rs.getBigDecimal("cancel"));
+		score.setResult(rs.getString("result"));
+		score.setFirsthalfresult(rs.getString("firsthalfresult"));
+		score.setCreatetime(new Date(rs.getTimestamp("createtime").getTime()));
+		if(rs.getTimestamp("audittime")!=null) {
+			score.setAudittime(new Date(rs.getTimestamp("audittime").getTime()));
+		}
+		score.setAuditname(rs.getString("auditname"));
+		return score;
 	}
 }

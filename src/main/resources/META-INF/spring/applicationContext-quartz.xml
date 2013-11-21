@@ -120,7 +120,17 @@
    		<property name="cronExpression" value="${quartz.jingcairesult}"></property>
    </bean>
    
+   <!--竞彩公告-->
+   <bean id="jingcaiannouncementJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="jingcaiAnnouncementService"></property>
+   		<property name="targetMethod" value="process"></property>
+   </bean>
    
+   <bean id="jingcaiannouncementTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="jingcaiannouncementJobDetail"></property>
+   		<property name="cronExpression" value="${quartz.jingcaiannouncement}"></property>
+   </bean>
+
     <!--竞彩足球让分-->
    <bean id="footballletpointJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
    		<property name="targetObject" ref="jingcaiLetPointService"></property>
@@ -181,25 +191,39 @@
    </bean>
    
    
+   <!--北单公告-->
+   <bean id="beidanAnnouncementDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+   		<property name="targetObject" ref="beidanAnnouncementService"></property>
+   		<property name="targetMethod" value="announcementTimer"></property>
+   </bean>
+   
+   <bean id="beidanAnnouncementTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+   		<property name="jobDetail" ref="beidanAnnouncementDetail"></property>
+   		<property name="cronExpression" value="${quartz.beidanannouncement}"></property>
+   </bean>
+   
+   
    
    <bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
    		<property name="triggers">
    			<list>
-<!--     			<ref bean="fastOpenCrawlTrigger"/> -->
-<!--     			<ref bean="fastOpenNoticeTrigger"/> -->
-<!--    				<ref bean="daPanCrawlTrigger"/> -->
-<!--    				<ref bean="daPanNoticeTrigger"/> -->
-<!--    				<ref bean="guanyajunTrigger"/> -->
-<!-- 				<ref bean="guanYaJunOlympicTrigger"/> -->
-<!--    				<ref bean="jingcaipeilvTrigger"/> -->
-<!-- 				<ref bean="jingcaiDuizhenTrigger"/> -->
-<!-- 				<ref bean="jingcairesultTrigger"/> -->
-<!-- 				<ref bean="footballletpointTrigger"/> -->
-<!-- 				<ref bean="basketballletpointTrigger"/> -->
+     			<ref bean="fastOpenCrawlTrigger"/>
+     			<ref bean="fastOpenNoticeTrigger"/>
+    			<ref bean="daPanCrawlTrigger"/>
+    			<ref bean="daPanNoticeTrigger"/>
+<!--    		<ref bean="guanyajunTrigger"/> -->
+<!-- 			<ref bean="guanYaJunOlympicTrigger"/> -->
+    			<ref bean="jingcaipeilvTrigger"/>
+				<ref bean="jingcaiDuizhenTrigger"/>
+				<ref bean="jingcairesultTrigger"/>
+ 				<ref bean="footballletpointTrigger"/>
+ 				<ref bean="basketballletpointTrigger"/>
+				<ref bean="jingcaiannouncementTrigger"/>
 				
 				<ref bean="beidanDuizhenTrigger"/>
 				<ref bean="beidanPeilvTrigger"/>
 				<ref bean="beidanResultTrigger"/>
+				<ref bean="beidanAnnouncementTrigger"/>
    			</list>
    		</property>
    </bean>

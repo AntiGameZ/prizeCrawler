@@ -19,7 +19,7 @@ public class Gdhappy10 extends AbstractLottype{
 
 	private static Logger logger = LoggerFactory.getLogger(Gdhappy10.class);
 
-	private static final long WAITTIME = 200000;
+	private static final long WAITTIME = 230000;
 	
 	
 	@Resource
@@ -31,6 +31,7 @@ public class Gdhappy10 extends AbstractLottype{
 	private Gdhappy10Lehe lehe = new Gdhappy10Lehe();
 	private Gdhappy10Lehe2 lehe2 = new Gdhappy10Lehe2();
 	private Gdhappy10Lehe3 lehe3 = new Gdhappy10Lehe3();
+	private Gdhappy10Caike caike = new Gdhappy10Caike();
 	
 	
 	@Override
@@ -57,6 +58,7 @@ public class Gdhappy10 extends AbstractLottype{
 					.getBatchcode());
 			PrizeInfo p3 = lehe3.carwlFromHappy10Lehe(prizeInfo
 					.getBatchcode());
+			PrizeInfo p4 = caike.carwlFromHappy10Caike(prizeInfo.getBatchcode());
 
 			if (p1.getWinbasecode()!=null&&p1.getWinbasecode().length()==23) {
 				prizeInfo.setBatchcode(prizeInfo.getBatchcode());
@@ -82,6 +84,14 @@ public class Gdhappy10 extends AbstractLottype{
 				prizeInfo.setWinbasecode(p3.getWinbasecode());
 				prizeInfo.setWinspecialcode(p3.getWinspecialcode());
 				prizeInfo.setCrawldate(new Date());
+			}else if(p4.getWinbasecode()!=null&&p4.getWinbasecode().length()==23) {
+				prizeInfo.setBatchcode(prizeInfo.getBatchcode());
+				prizeInfo.setCrawlnum(prizeInfo.getCrawlnum() + 1);
+				prizeInfo.setCrawlState(1);
+				prizeInfo.setLotno("T01015");
+				prizeInfo.setWinbasecode(p4.getWinbasecode());
+				prizeInfo.setWinspecialcode(p4.getWinspecialcode());
+				prizeInfo.setCrawldate(new Date());
 			} else {
 				prizeInfo.setCrawlnum(prizeInfo.getCrawlnum() + 1);
 				prizeInfo.setCrawlState(0);
@@ -105,7 +115,7 @@ public class Gdhappy10 extends AbstractLottype{
 	@Override
 	public boolean isCrawl() {
 
-		return true;
+		return configService.isCrawl("T01015");
 	}
 
 	@Override

@@ -117,7 +117,7 @@ public class Gd11c5 extends AbstractLottype {
 	@Override
 	public boolean isCrawl() {
 
-		return true;
+		return configService.isCrawl("T01014");
 	}
 
 	@Override

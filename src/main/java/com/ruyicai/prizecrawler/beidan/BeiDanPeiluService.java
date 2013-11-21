@@ -26,24 +26,28 @@ public class BeiDanPeiluService {
 	private static String DANSHUANG = "http://www.bjlot.com/ssm/ssm210.shtml";// B00004
 	private static String BIFEN = "http://www.bjlot.com/ssm/ssm250.shtml";// B00005
 	
-	private static String xmlHead = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>";
 	
 	private static Map<String,PeiLv> peilvmap = new HashMap<String,PeiLv>();
 	
 	public static void main(String[] args) throws IOException {
-		PeiLv shengPFPeilv = new BeiDanPeiluService().getShengPFPeilv();
-		XStream xstream = new XStream(new DomDriver());
-		xstream.alias("Football_Vs", Football_Vs.class);
-		xstream.alias("PeiLv", PeiLv.class);
+//		PeiLv shengPFPeilv = new BeiDanPeiluService().getBiFenPeilv();
+//		XStream xstream = new XStream(new DomDriver());
+//		xstream.alias("Football_Vs", Football_Vs.class);
+//		xstream.alias("PeiLv", PeiLv.class);
+//		
+//		xstream.autodetectAnnotations(true);
+//		String xml = xstream.toXML(shengPFPeilv);
+//		System.out.println(xml);
 		
-		xstream.autodetectAnnotations(true);
-		String xml = xstream.toXML(shengPFPeilv);
-		System.out.println(xmlHead+xml);
+		PeiLv zongJQPeilv = new BeiDanPeiluService().getZongJQPeilv();
 	}
 	
 	
 	public String getPeilvXMl(String lotno,String batchcode) {
 		PeiLv peilv = peilvmap.get(lotno+"_"+batchcode);
+		if(peilv==null) {
+			throw new RuntimeException("beidan peilu is null");
+		}
 		XStream xstream = new XStream(new DomDriver());
 		xstream.alias("Football_Vs", Football_Vs.class);
 		xstream.alias("DanShuang", DanShuang.class);
@@ -53,7 +57,7 @@ public class BeiDanPeiluService {
 		xstream.alias("PeiLv", PeiLv.class);
 		String xml = xstream.toXML(peilv);
 		
-		return xmlHead+xml;
+		return xml;
 	}
 	
 	public void peilvTimer() {
@@ -66,35 +70,35 @@ public class BeiDanPeiluService {
 		}
 		
 		try {
-			logger.info("开始抓取胜平负赔率");
+			logger.info("开始抓取总进球赔率");
 			 PeiLv<Goal> zongJQPeilv = getZongJQPeilv();
 			 peilvmap.put(zongJQPeilv.getLotno()+"_"+zongJQPeilv.getBatchcode(), zongJQPeilv);
 		}catch(Exception e) {
-			logger.info("抓取胜平负赔率出错",e);
+			logger.info("抓取总进球赔率出错",e);
 		}
 		
 		try {
-			logger.info("开始抓取胜平负赔率");
+			logger.info("开始抓取半全场赔率");
 			PeiLv<Half> banQCPeilv = getBanQCPeilv();
 			peilvmap.put(banQCPeilv.getLotno()+"_"+banQCPeilv.getBatchcode(), banQCPeilv);
 		}catch(Exception e) {
-			logger.info("抓取胜平负赔率出错",e);
+			logger.info("抓取半全场赔率出错",e);
 		}
 		
 		try {
-			logger.info("开始抓取胜平负赔率");
+			logger.info("开始抓取上下单双赔率");
 			PeiLv<DanShuang> danShuangPeilv = getDanShuangPeilv();
 			peilvmap.put(danShuangPeilv.getLotno()+"_"+danShuangPeilv.getBatchcode(), danShuangPeilv);
 		}catch(Exception e) {
-			logger.info("抓取胜平负赔率出错",e);
+			logger.info("抓取上下单双赔率出错",e);
 		}
 		
 		try {
-			logger.info("开始抓取胜平负赔率");
+			logger.info("开始抓取比分赔率");
 			PeiLv<Score> biFenPeilv = getBiFenPeilv();
 			peilvmap.put(biFenPeilv.getLotno()+"_"+biFenPeilv.getBatchcode(), biFenPeilv);
 		}catch(Exception e) {
-			logger.info("抓取胜平负赔率出错",e);
+			logger.info("抓取比分赔率出错",e);
 		}
 	}
 
@@ -121,6 +125,9 @@ public class BeiDanPeiluService {
 				Elements tds = openmatch.select("td");
 				String no = tds.get(0).text().trim();
 				String letPoint = tds.get(5).text().trim();
+				if(Integer.parseInt(letPoint)>0) {
+					letPoint = "+"+letPoint;
+				}
 				String v3 = tds.get(7).text().trim();
 				String v1 = tds.get(8).text().trim();
 				String v0 = tds.get(9).text().trim();
@@ -129,7 +136,7 @@ public class BeiDanPeiluService {
 		}
 		
 		peilv.setLotno("B00001");
-		peilv.setBatchcode(batchcode);
+		peilv.setBatchcode("201"+batchcode);
 		peilv.setMap(map);
 		return peilv;
 	}
@@ -156,20 +163,20 @@ public class BeiDanPeiluService {
 			for (Element openmatch : openmatches) {
 				Elements tds = openmatch.select("td");
 				String no = tds.get(0).text().trim();
-				String v0 = tds.get(7).text().trim();
-				String v1 = tds.get(8).text().trim();
-				String v2 = tds.get(9).text().trim();
-				String v3 = tds.get(10).text().trim();
-				String v4 = tds.get(11).text().trim();
-				String v5 = tds.get(12).text().trim();
-				String v6 = tds.get(13).text().trim();
-				String v7 = tds.get(14).text().trim();
+				String v0 = tds.get(6).text().trim(); 
+				String v1 = tds.get(7).text().trim();
+				String v2 = tds.get(8).text().trim();
+				String v3 = tds.get(9).text().trim();
+				String v4 = tds.get(10).text().trim();
+				String v5 = tds.get(11).text().trim();
+				String v6 = tds.get(12).text().trim();
+				String v7 = tds.get(13).text().trim();
 				map.put(no, new Goal(v0, v1, v2, v3, v4, v5, v6, v7));
 			}
 		}
 		
 		peilv.setLotno("B00002");
-		peilv.setBatchcode(batchcode);
+		peilv.setBatchcode("201"+batchcode);
 		peilv.setMap(map);
 		return peilv;
 	}
@@ -196,22 +203,22 @@ public class BeiDanPeiluService {
 			for (Element openmatch : openmatches) {
 				Elements tds = openmatch.select("td");
 				String no = tds.get(0).text().trim();
-				String v33 = tds.get(7).text().trim();
-				String v31 = tds.get(8).text().trim();
-				String v30 = tds.get(9).text().trim();
-				String v13 = tds.get(10).text().trim();
-				String v11 = tds.get(11).text().trim();
-				String v10 = tds.get(12).text().trim();
-				String v03 = tds.get(13).text().trim();
-				String v01 = tds.get(14).text().trim();
-				String v00 = tds.get(15).text().trim();
+				String v33 = tds.get(6).text().trim();
+				String v31 = tds.get(7).text().trim();
+				String v30 = tds.get(8).text().trim();
+				String v13 = tds.get(9).text().trim();
+				String v11 = tds.get(10).text().trim();
+				String v10 = tds.get(11).text().trim();
+				String v03 = tds.get(12).text().trim();
+				String v01 = tds.get(13).text().trim();
+				String v00 = tds.get(14).text().trim();
 				
 				map.put(no, new Half(v00, v01, v03, v10, v11, v13, v30, v31, v33));
 			}
 		}
 		
 		peilv.setLotno("B00003");
-		peilv.setBatchcode(batchcode);
+		peilv.setBatchcode("201"+batchcode);
 		peilv.setMap(map);
 		return peilv;
 	}
@@ -238,16 +245,16 @@ public class BeiDanPeiluService {
 			for (Element openmatch : openmatches) {
 				Elements tds = openmatch.select("td");
 				String no = tds.get(0).text().trim();
-				String v1 = tds.get(7).text().trim();
-				String v2 = tds.get(8).text().trim();
-				String v3 = tds.get(9).text().trim();
-				String v4 = tds.get(10).text().trim();
+				String v1 = tds.get(6).text().trim();
+				String v2 = tds.get(7).text().trim();
+				String v3 = tds.get(8).text().trim();
+				String v4 = tds.get(9).text().trim();
 				map.put(no, new DanShuang(v1, v2, v3, v4));
 			}
 		}
 		
 		peilv.setLotno("B00004");
-		peilv.setBatchcode(batchcode);
+		peilv.setBatchcode("201"+batchcode);
 		peilv.setMap(map);
 		return peilv;
 	}
@@ -279,40 +286,40 @@ public class BeiDanPeiluService {
 				Elements tds3 = openmatches.get(j+3).select("td");
 				
 				String no = tds0.get(0).text().trim();
-				String v90 = tds1.get(0).text().trim();
-				String v10 = tds1.get(1).text().trim();
-				String v20 = tds1.get(2).text().trim();
-				String v21 = tds1.get(3).text().trim();
-				String v30 = tds1.get(4).text().trim();
-				String v31 = tds1.get(5).text().trim();
-				String v32 = tds1.get(6).text().trim();
-				String v40 = tds1.get(7).text().trim();
-				String v41 = tds1.get(8).text().trim();
-				String v42 = tds1.get(9).text().trim();
+				String v90 = tds1.get(0).select("span").get(0).text().trim();
+				String v10 = tds1.get(1).select("span").get(0).text().trim();
+				String v20 = tds1.get(2).select("span").get(0).text().trim();
+				String v21 = tds1.get(3).select("span").get(0).text().trim();
+				String v30 = tds1.get(4).select("span").get(0).text().trim();
+				String v31 = tds1.get(5).select("span").get(0).text().trim();
+				String v32 = tds1.get(6).select("span").get(0).text().trim();
+				String v40 = tds1.get(7).select("span").get(0).text().trim();
+				String v41 = tds1.get(8).select("span").get(0).text().trim();
+				String v42 = tds1.get(9).select("span").get(0).text().trim();
 				
-				String v99 = tds2.get(0).text().trim();
-				String v00 = tds2.get(1).text().trim();
-				String v11 = tds2.get(2).text().trim();
-				String v22 = tds2.get(3).text().trim();
-				String v33 = tds2.get(4).text().trim();
+				String v99 = tds2.get(0).select("span").get(0).text().trim();
+				String v00 = tds2.get(1).select("span").get(0).text().trim();
+				String v11 = tds2.get(2).select("span").get(0).text().trim();
+				String v22 = tds2.get(3).select("span").get(0).text().trim();
+				String v33 = tds2.get(4).select("span").get(0).text().trim();
 				
-				String v09 = tds3.get(0).text().trim();
-				String v01 = tds3.get(1).text().trim();
-				String v02 = tds3.get(2).text().trim();
-				String v12 = tds3.get(3).text().trim();
-				String v03 = tds3.get(4).text().trim();
-				String v13 = tds3.get(5).text().trim();
-				String v23 = tds3.get(6).text().trim();
-				String v04 = tds3.get(7).text().trim();
-				String v14 = tds3.get(8).text().trim();
-				String v24 = tds3.get(9).text().trim();
+				String v09 = tds3.get(0).select("span").get(0).text().trim();
+				String v01 = tds3.get(1).select("span").get(0).text().trim();
+				String v02 = tds3.get(2).select("span").get(0).text().trim();
+				String v12 = tds3.get(3).select("span").get(0).text().trim();
+				String v03 = tds3.get(4).select("span").get(0).text().trim();
+				String v13 = tds3.get(5).select("span").get(0).text().trim();
+				String v23 = tds3.get(6).select("span").get(0).text().trim();
+				String v04 = tds3.get(7).select("span").get(0).text().trim();
+				String v14 = tds3.get(8).select("span").get(0).text().trim();
+				String v24 = tds3.get(9).select("span").get(0).text().trim();
 				map.put(no, new Score(v10, v20, v21, v30, v31, v32, v40, v41, v42, v01, v02, v12, v03, v13, v23, v04, v14, v24, v00, v11, v22, v33, v90, v99, v09));
 			}
 			
 		}
 		
 		peilv.setLotno("B00005");
-		peilv.setBatchcode(batchcode);
+		peilv.setBatchcode("201"+batchcode);
 		peilv.setMap(map);
 		return peilv;
 	}

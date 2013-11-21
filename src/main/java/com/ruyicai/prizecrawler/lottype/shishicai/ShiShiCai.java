@@ -111,7 +111,7 @@ public class ShiShiCai extends AbstractLottype{
 
 	@Override
 	public boolean isCrawl() {
-		return true;
+		return configService.isCrawl("T01007");
 	}
 
 	@Override

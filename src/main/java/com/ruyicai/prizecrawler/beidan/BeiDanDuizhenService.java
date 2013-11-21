@@ -18,9 +18,11 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.ruyicai.prizecrawler.beidan.dao.TBeidanDao;
+import com.ruyicai.prizecrawler.util.SendSMS;
 
 @Service
 public class BeiDanDuizhenService {
@@ -33,11 +35,16 @@ public class BeiDanDuizhenService {
 	private static String DANSHUANG = "http://www.bjlot.com/ssm/ssm210.shtml";//B00004
 	private static String BIFEN = "http://www.bjlot.com/ssm/ssm250.shtml";//B00005
 	
-	private static String REGEX2 = "(20)([1-9][1-9]){1}[-](0[1-9]|1[0-2]){1}[-](0[1-9]|1[0-9]|2[0-9]|3[0-1]){1}";
 	private static String REGEX1 = "([1-9][1-9]){1}[-](0[1-9]|1[0-2]){1}[-](0[1-9]|1[0-9]|2[0-9]|3[0-1]){1}";
 	
 	@Autowired
 	private TBeidanDao beidandao;
+	
+	@Value("${msg.station}")
+	private String msgstation;
+	
+	@Autowired
+	private SendSMS sendSMS;
 	
 	
 	public void duizhenTimer() {
@@ -52,13 +59,24 @@ public class BeiDanDuizhenService {
 	
 	
 	private void findAndPersist(List<TBeiDanMatches> list) {
+		int newmatch = 0;
 		for(TBeiDanMatches match:list) {
-			if(beidandao.findBeidanMatch(match.getLotno(), match.getBatchcode(), match.getNo())==null) {
+			TBeiDanMatches oldMatch = beidandao.findBeidanMatch(match.getLotno(), match.getBatchcode(), match.getNo());
+			if(oldMatch==null) {
 				logger.info("保存北单赛事"+match.toString());
 				beidandao.persist(match);
+				newmatch = newmatch + 1;
 			}else {
-				logger.info("北单赛事{} {} {}已经存在",new String[]{match.getLotno(),match.getBatchcode(),match.getNo()});
+				logger.info("北单赛事{} {} {}已经存在,比较结束时间是否相同",new String[]{match.getLotno(),match.getBatchcode(),match.getNo()});
+				if(match.getEndtime()!=null&&oldMatch.getEndtime()!=null&&(!match.getEndtime().equals(oldMatch.getEndtime()))) {
+					logger.info("北单赛事{} {} {}结束时间不同,进行更改,原始时间={} 更改时间={}",new String[]{match.getLotno(),match.getBatchcode(),match.getNo(),oldMatch.getEndtime().toString(),match.getEndtime().toString()});
+					beidandao.updateBeidanMatcheEndtime(match);
+				}
 			}
+		}
+		
+		if(newmatch>0) {
+			sendSMS.sendSMS(msgstation+sendSMS.beidanMatchMsg);
 		}
 	}
 	
@@ -167,8 +185,9 @@ public class BeiDanDuizhenService {
 					Elements tds = openmatch.select("td");
 					TBeiDanMatches match = new TBeiDanMatches();
 					match.setLotno("B00005");
-					match.setBatchcode(batchcode);//奖期年
+					match.setBatchcode("201"+batchcode);//奖期年
 					match.setNo(tds.get(0).select("span").get(0).text().trim());
+					match.setDay(timestart.replace("-", ""));
 					String league_time = tds.get(2).text().trim().replace(" ", "");
 					match.setLeaguename(league_time.substring(0, league_time.length()-5));
 					match.setHost(tds.get(3).text().trim().replace(" ", "").substring(3));
@@ -187,7 +206,7 @@ public class BeiDanDuizhenService {
 						realtime = format.format(calendar.getTime());
 					}
 					Date endtime = new SimpleDateFormat("yyyy-MM-dd hh:mm").parse(realtime+" "+enddatestr);
-					match.setEndtime(endtime);
+					match.setEndtime(getBeforeDate(-10, endtime));
 					
 					match.setState(BigDecimal.ZERO);
 					match.setSalestate(BigDecimal.ZERO);
@@ -232,10 +251,11 @@ public class BeiDanDuizhenService {
 				Elements tds = openmatch.select("td");
 				TBeiDanMatches match = new TBeiDanMatches();
 				match.setLotno(lotno);
-				match.setBatchcode(batchcode);//奖期年
+				match.setBatchcode("201"+batchcode);//奖期年
 				match.setNo(tds.get(0).select("span").get(0).text().trim());
 				match.setLeaguename(tds.get(2).text().trim().replace(" ", ""));
 				match.setHost(tds.get(4).text().trim().replace(" ", ""));
+				match.setDay(timestart.replace("-", ""));
 				if(isHandicap) {
 					match.setHandicap(new BigDecimal(tds.get(5).text().trim()));
 					match.setGuest(tds.get(6).text().trim().replace(" ", ""));
@@ -257,7 +277,7 @@ public class BeiDanDuizhenService {
 					realtime = format.format(calendar.getTime());
 				}
 				Date endtime = new SimpleDateFormat("yyyy-MM-dd hh:mm").parse(realtime+" "+enddatestr);
-				match.setEndtime(endtime);
+				match.setEndtime(getBeforeDate(-10, endtime));
 				
 				match.setState(BigDecimal.ZERO);
 				match.setSalestate(BigDecimal.ZERO);
@@ -268,5 +288,13 @@ public class BeiDanDuizhenService {
 		}
 		
 		return matches;
+	}
+	
+	
+	private Date getBeforeDate(int minutebefore,Date date) {
+		Calendar now = Calendar.getInstance();
+		now.setTime(date);
+		now.add(Calendar.MINUTE, minutebefore);
+		return now.getTime();
 	}
 }

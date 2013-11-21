@@ -27,7 +27,7 @@ public class JingcaiLetPointService {
 	
 	public void updateFootBallLetPointService() {
 		logger.info("开始更新足球让球");
-		org.dom4j.Document football = peiluservice.getJingcaipeilu("1", "1");
+		org.dom4j.Document football = peiluservice.getJingcaipeilu("1", "0");
 		
 		if(football==null) {
 			logger.info("足球赛事赔率为空,退出...");
@@ -43,7 +43,7 @@ public class JingcaiLetPointService {
 		logger.info("获取足球赛事每场次赔率成功");
 		for(Element item:items) {
 			String id = item.select("id").text();
-			String letpoint = item.select("vs").get(0).select("letPoint").text();
+			String letpoint = item.select("letVs").get(0).select("letPoint").text();
 			if(id.trim().equals("")||letpoint.trim().equals("")) {
 				continue;
 			}

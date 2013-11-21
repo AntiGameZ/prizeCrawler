@@ -45,6 +45,11 @@ public class TBeiDanResult {
 		return no;
 	}
 	public void setNo(String no) {
+		if(no.length()==1) {
+			no = "00"+no;
+		}else if(no.length()==2) {
+			no = "0"+no;
+		}
 		this.no = no;
 	}
 	public BigDecimal getIscancel() {

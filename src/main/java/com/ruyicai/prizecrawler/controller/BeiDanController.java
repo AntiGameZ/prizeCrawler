@@ -39,6 +39,7 @@ public class BeiDanController {
 			rd.setValue(beiDanPeiluService.getPeilvXMl(lotno, batchcode));
 		} catch(Exception e) {
 			logger.error(e.getMessage(), e);
+			rd.setValue("");
 			rd.setErrorCode(ErrorCode.ERROR.value);
 		}
 		return rd;
@@ -83,6 +84,37 @@ public class BeiDanController {
 		rd.setErrorCode(ErrorCode.OK.value);
 		try {
 			beiDanResultService.resultTimer();
+		} catch(Exception e) {
+			logger.error(e.getMessage(), e);
+			rd.setErrorCode(ErrorCode.ERROR.value);
+		}
+		return rd;
+	}
+	
+	
+	@RequestMapping(value = "/crawlresultByParamater", method = RequestMethod.POST)
+	public @ResponseBody
+	ResponseData crawlresultByParamater(@RequestParam("lotno") String lotno,
+			@RequestParam("year") String year,@RequestParam("batchcode") String batchcode) {
+		ResponseData rd = new ResponseData();
+		rd.setErrorCode(ErrorCode.OK.value);
+		try {
+			beiDanResultService.crawResultPage(lotno, year, batchcode);
+		} catch(Exception e) {
+			logger.error(e.getMessage(), e);
+			rd.setErrorCode(ErrorCode.ERROR.value);
+		}
+		return rd;
+	}
+	
+	
+	@RequestMapping(value = "/crawlresultFromMatch", method = RequestMethod.POST)
+	public @ResponseBody
+	ResponseData crawlresultByParamater(@RequestParam("lotno") String lotno) {
+		ResponseData rd = new ResponseData();
+		rd.setErrorCode(ErrorCode.OK.value);
+		try {
+			beiDanResultService.crawResultMatchPage(lotno);
 		} catch(Exception e) {
 			logger.error(e.getMessage(), e);
 			rd.setErrorCode(ErrorCode.ERROR.value);

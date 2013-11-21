@@ -11,6 +11,8 @@ public class TBeiDanMatches {
 	private String batchcode;
 	// 场次编号
 	private String no;
+	
+	private String day;
 	// 赛事名称
 	private String leaguename;
 	// 主队简称
@@ -44,7 +46,18 @@ public class TBeiDanMatches {
 	public String getNo() {
 		return no;
 	}
+	public String getDay() {
+		return day;
+	}
+	public void setDay(String day) {
+		this.day = day;
+	}
 	public void setNo(String no) {
+		if(no.length()==1) {
+			no = "00"+no;
+		}else if(no.length()==2) {
+			no = "0"+no;
+		}
 		this.no = no;
 	}
 	public String getLeaguename() {
@@ -105,15 +118,11 @@ public class TBeiDanMatches {
 	@Override
 	public String toString() {
 		return "TBeiDanMatches [lotno=" + lotno + ", batchcode=" + batchcode
-				+ ", no=" + no + ", leaguename=" + leaguename + ", host="
-				+ host + ", guest=" + guest + ", createtime=" + createtime
-				+ ", endtime=" + endtime + ", handicap=" + handicap
-				+ ", state=" + state + ", salestate=" + salestate + ", audit="
-				+ audit + "]";
+				+ ", no=" + no + ", day=" + day + ", leaguename=" + leaguename
+				+ ", host=" + host + ", guest=" + guest + ", createtime="
+				+ createtime + ", endtime=" + endtime + ", handicap="
+				+ handicap + ", state=" + state + ", salestate=" + salestate
+				+ ", audit=" + audit + "]";
 	}
-	
-	
-	
-	
 	
 }

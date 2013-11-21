@@ -13,7 +13,7 @@
 	<context:property-placeholder location="classpath:*.properties"/>
 	
 	<bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
-		<property name="brokerURL" value="${activemq.brokerURL}" />
+		<property name="brokerURL" value="${activemq.lottery.brokerURL}" />
 	</bean>
 	
 	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
@@ -22,7 +22,17 @@
 		<property name="sessionTransacted" value="true"></property>
 	</bean>
 	
+<!-- lotserver mq -->
+
+	<bean id="connectionFactory2" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="${activemq.lotserver.brokerURL}" />
+	</bean>
 	
+	<bean id="jmsLotserverTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="connectionFactory2" />
+		<property name="receiveTimeout" value="60000" />
+		<property name="sessionTransacted" value="true"></property>
+	</bean>
 	
 
 	<!-- 期结束消息队列 -->
@@ -53,6 +63,16 @@
 	<!-- lottery开奖信息队列 -->
 	<bean id="agencyDrawLottery" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg index="0" value="VirtualTopicConsumers.prizecrawler.agencyDrawLottery" />
+	</bean>
+	
+	<!-- jingcairesult队列 -->
+	<bean id="jingcairesult" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="VirtualTopicConsumers.lotserver.jingcairesult-topic" />
+	</bean>
+	
+	<!-- beidanresult队列 -->
+	<bean id="beidanresult" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="VirtualTopicConsumers.lotserver.beidanresult-topic" />
 	</bean>
 	
 	<!-- 消息接收监听器用于异步接收消息(期截信息) -->
@@ -90,5 +110,57 @@
 		<property name="destination" ref="errEmailQueue" />
 		<property name="messageListener" ref="sendEmailListener"/>
 	</bean>
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- 篮球比赛结束消息队列 -->
+	<bean id="basketballend" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="VirtualTopicConsumers.prizecrawler.scheduleJclFinish" />
+	</bean>
+	
+	<!-- 足球比赛结束消息队列 -->
+	<bean id="footballend" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="VirtualTopicConsumers.prizecrawler.scheduleFinish" />
+	</bean>
+	
+	<!-- 北单比赛结束消息队列 -->
+	<bean id="beidanend" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="VirtualTopicConsumers.prizecrawler.scheduleBdFinish" />
+	</bean>
+	
+	
+	<bean class="org.springframework.jms.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory2" />
+		<property name="destination" ref="basketballend" />
+		<property name="messageListener" ref="basketBallEndListener"/>
+		<property name="concurrentConsumers" value="3"></property>
+	</bean>
+	
+	<bean class="org.springframework.jms.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory2" />
+		<property name="destination" ref="footballend" />
+		<property name="messageListener" ref="footBallEndListener"/>
+		<property name="concurrentConsumers" value="3"></property>
+	</bean>
+	
+	<bean class="org.springframework.jms.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory2" />
+		<property name="destination" ref="beidanend" />
+		<property name="messageListener" ref="beidanEndListener"/>
+		<property name="concurrentConsumers" value="3"></property>
+	</bean>
+	
 
 </beans>

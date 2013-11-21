@@ -23,6 +23,8 @@ public class Tjingcaimatches {
 	
 	private String team;
 	
+	private String teamshortname;
+	
 	private Date time;
 
 	private String unsupport;
@@ -153,6 +155,14 @@ public class Tjingcaimatches {
 
 	public void setLetpoint(String letpoint) {
 		this.letpoint = letpoint;
+	}
+
+	public String getTeamshortname() {
+		return teamshortname;
+	}
+
+	public void setTeamshortname(String teamshortname) {
+		this.teamshortname = teamshortname;
 	}
 	
 	
